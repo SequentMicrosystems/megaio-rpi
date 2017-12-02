@@ -1,0 +1,29 @@
+....
+Version 1.1.5:
+1) Implement option "-v" - display the megaio version 
+2) Implement option "board" - display the board version and firmware version
+3) Implement retry mechanism for relay write command
+
+Version 1.1.6:
+1) Board detection mechanism
+2) DEBUG defines
+3) Retry report in debug mode
+Version 1.1.7:
+1)Update board option 
+2) Add interrupt functionality for optoio and XPIO
+3) Update help command(s)
+Version 1.1.7:
+1) Add rwrite <value> command with retry
+Version 1.1.9
+1) Add led board suport.
+Version 2.0.1:
+1) Change for hardware version 3.1 (no back compatibility!!!!!!!!!!)
+2) Add "megaio <id> test" - self test (you shuld plug the test card in order to PASS) Warning!! This test will change relay state 
+3) Add "megaio <id> test <file path> - self test and save all result in text format in file	
+4) Add "megaio <id> atest <ch> - Test the analog channel, compute "peack to peack" "median" "standard deviation" values.
+5) Add "megaio -warranty"			
+Version 2.1.0:
+1)Treat LED board independet (no led change with relay change)
+2) Add "megaio -lw <val>" : Write 32bits hex value to led card
+3) Add "megaio -lw <led> <on/off, 1/0, high/low>" : Turn on/off corespondent led
+4) Add "megaio -lt"  :fash the led's... 
