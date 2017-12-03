@@ -43,33 +43,33 @@ int gLed2HwAdd = 0x21;
 
 
 char *usage = "Usage:	megaio -h <command>\n"
-			  "         megaio -v\n"
-			  "         megaio -lt\n"
-			  "         megaio -lw <val>\n"
-			  "         megaio -lw <lednr> <val>\n"
-			  "         megaio -warranty\n"
-			  "         megaio <id> board\n"
-		      "         megaio <id> rwrite <channel> <on/off>\n"
-              "         megaio <id> rread <channel>\n" 
-              "         megaio <id> rread\n"	
-              "         megaio <id> aread <channel>\n"
-              "         megaio <id> awrite <value>\n"
-              "         megaio <id> optread <channel>\n"
-              "         megaio <id> optread\n"
-              "         megaio <id> optirqset <channel> <rising/falling/change/none>\n"
-			  "         megaio <id> optitRead\n"
-              "         megaio <id> iodwrite <channel> <in/out>\n"
-              "         megaio <id> iodread <channel>\n"
-              "         megaio <id> iodread\n" 
-              "         megaio <id> iowrite <channel> <on/off>\n"
-              "         megaio <id> ioread <channel>\n"
-              "         megaio <id> ioread\n"
-              "         megaio <id> ioirqset <channel> <rising/falling/change/none>\n"
-			  "         megaio <id> ioitread\n"
-			  "         megaio <id> test\n"
-			  "         megaio <id> atest <chNr>\n"
-			  "Where: <id> = Board level id = 0..4\n"
-			  "Type megaio -h <command> for more help";// No trailing newline needed here.
+		"         megaio -v\n"
+		"         megaio -lt\n"
+		"         megaio -lw <val>\n"
+		"         megaio -lw <lednr> <val>\n"
+		"         megaio -warranty\n"
+		"         megaio <id> board\n"
+	      	"         megaio <id> rwrite <channel> <on/off>\n"
+              	"         megaio <id> rread <channel>\n" 
+              	"         megaio <id> rread\n"	
+              	"         megaio <id> aread <channel>\n"
+              	"         megaio <id> awrite <value>\n"
+              	"         megaio <id> optread <channel>\n"
+              	"         megaio <id> optread\n"
+              	"         megaio <id> optirqset <channel> <rising/falling/change/none>\n"
+		"         megaio <id> optitRead\n"
+              	"         megaio <id> iodwrite <channel> <in/out>\n"
+              	"         megaio <id> iodread <channel>\n"
+              	"         megaio <id> iodread\n" 
+              	"         megaio <id> iowrite <channel> <on/off>\n"
+              	"         megaio <id> ioread <channel>\n"
+              	"         megaio <id> ioread\n"
+              	"         megaio <id> ioirqset <channel> <rising/falling/change/none>\n"
+		"         megaio <id> ioitread\n"
+		"         megaio <id> test\n"
+		"         megaio <id> atest <chNr>\n"
+		"Where: <id> = Board level id = 0..4\n"
+		"Type megaio -h <command> for more help";// No trailing newline needed here.
 			  
 char *warranty ="	       Copyright (c) 2016-2017 Sequent Microsystems\n"
 				"                                                             \n"
@@ -164,7 +164,7 @@ int writeReg16(int dev, int add, int val)
 	wVal = 0xff & (val >> 8);
 	wVal += 0xff00 & (val << 8);
 	wiringPiI2CWriteReg16(dev,add, wVal);
-	delay(100);
+	delay(10);
 	return 0;
 }
 
@@ -1453,7 +1453,7 @@ void doHelp(int argc, char *argv[])
 		{ 
 			printf("\tioread:      Read state of IO Port(s)\n");
 			printf("\tUsage:       megaio <id> ioread <channel>\n");
-			printf("\tExample:     megaio 0 ioread 17 : Read the XPIO pin 17 State\n"); 
+			printf("\tExample:     megaio 0 ioread 4 : Read the XPIO pin 4 State\n"); 
 			printf("\tUsage:       megaio <id> ioread\n");
 			printf("\tExample:     megaio 0 ioread; Read the entire XPIO port value\n"); 
 		}
@@ -1474,6 +1474,20 @@ void doHelp(int argc, char *argv[])
 			printf("\t-lt:         Test all the LED's \n");
 			printf("\tUsage:       megaio -lt\n");
 			printf("\tExample:     megaio -lt\n"); 
+		}
+		else if(strcasecmp(argv[2], "-lw") == 0)
+		{
+			printf("\t-lw:		Turn on/off LED's\n");
+			printf("\tUsage:	megaio -lw <led_nr> <on/off; 1/0> : turn on/off the 'led_nr' LED\n");
+			printf("\tExample:	megaio -lw 10 on\n");
+			printf("\tUsage:	megaio -lw <val> : hex value of all 32 LED's\n");
+			printf("\tExample:	megaio -lw 55555555 : turn on all odd number LED's\n");
+		}
+		else if(strcasecmp(argv[2], "atest") == 0)
+		{
+			printf("\tatest:  	Test a adc channel, compute mean, peak to peak and stdDev\n");
+			printf("\tUsage:	megaio <id> atest <ch>\n");
+			printf("\tExample:	megaio 0 atest 2 : test ADC channel 2\n");
 		}
 	}
 	else
@@ -1568,12 +1582,8 @@ static void  doAdcTest(int argc, char* argv[])
 	printf("Statistics on ch %d : \n", chNr);
 	printf("Standard deviation: %f\n", sigma);
 	printf("Mean %d\n", (int)mean);
-	printf("Peak to peak : %d\n", maxVal - minVal);
-	
-	
+	printf("Peak to peak : %d\n", maxVal - minVal);	
 }
-
-
 
 /* 
 * Self test for production
@@ -1964,9 +1974,7 @@ static void doTest(int argc, char* argv[])
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 4);
 	}
 	delay(100);
-	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x3f);
-		
-	
+	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x3f);	
 	if(file)
 	{
 		fclose(file);
