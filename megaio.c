@@ -8,8 +8,6 @@
  *	Author: Alexandru Burcea
  ***********************************************************************
  */
-
-
 #include <stdio.h>
 #include <termios.h>
 #include <stdlib.h>
@@ -1488,6 +1486,13 @@ void doHelp(int argc, char *argv[])
 			printf("\tatest:  	Test a adc channel, compute mean, peak to peak and stdDev\n");
 			printf("\tUsage:	megaio <id> atest <ch>\n");
 			printf("\tExample:	megaio 0 atest 2 : test ADC channel 2\n");
+		}
+		else if(strcasecmp(argv[2], "test") == 0)
+		{
+			printf("\tatest:  	Test the board, it pass onliy with test card connected\n");
+			printf("\tWARNING: This option should not be run with your board connected to external devices\n");
+			printf("\tUsage:	megaio <id> test\n");
+			printf("\tExample:	megaio 0 test\n");
 		}
 	}
 	else
