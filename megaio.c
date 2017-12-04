@@ -774,9 +774,9 @@ static void doOptoInIrq(int argc, char *argv[])
 		}
 	
 		rRising = wiringPiI2CReadReg8(dev,OPTO_IT_RISING_MEM_ADD );
-		delay(100);
+		delay(10);
 		rFalling = wiringPiI2CReadReg8(dev, OPTO_IT_FALLING_MEM_ADD);
-		delay(100);
+		delay(10);
 		switch(val)
 		{
 			case 0:
@@ -807,7 +807,7 @@ static void doOptoInIrq(int argc, char *argv[])
 		val = (0xff00 & (rFalling << 8)) + (0xff & rRising);
 		
 		wiringPiI2CWriteReg8(dev,OPTO_IT_RISING_MEM_ADD, rRising);
-		delay(100);
+		delay(10);
 		wiringPiI2CWriteReg8(dev,OPTO_IT_FALLING_MEM_ADD, rFalling);
 		
 	}
@@ -1136,7 +1136,7 @@ static void doOptoInIt(int argc)
 		}
 	    
 		rValRising = wiringPiI2CReadReg8(dev, GPIO_EXT_IT_RISING_MEM_ADD);
-		delay(100);
+		delay(10);
 		rValFalling = wiringPiI2CReadReg8(dev, GPIO_EXT_IT_FALLING_MEM_ADD);
 		switch(val)
 		{
@@ -1165,10 +1165,10 @@ static void doOptoInIt(int argc)
 				exit(1);
 			break;
 		}
-		delay(100);
+		delay(10);
 		
 		wiringPiI2CWriteReg8(dev,GPIO_EXT_IT_RISING_MEM_ADD, 0xff & rValRising );
-		delay(100);
+		delay(10);
 		wiringPiI2CWriteReg8(dev,GPIO_EXT_IT_FALLING_MEM_ADD, 0xff & rValFalling );
 		
 		
@@ -1745,7 +1745,7 @@ static void doTest(int argc, char* argv[])
 		if(i == 7)
 		{
 			writeReg16(dev, DAC_VAL_H_MEM_ADD, 0x0000);
-			delay(100); 
+			delay(10); 
 			addr = ADC_VAL_MEM_ADD + 2* (i-1);
 			adcVal = readReg16(dev, addr);
 			if(adcVal > 100)
@@ -1763,10 +1763,10 @@ static void doTest(int argc, char* argv[])
 			}
 			
 			writeReg16(dev, DAC_VAL_H_MEM_ADD, 3000);
-			delay(200); 		
+			delay(20); 		
 		}
 		addr = ADC_VAL_MEM_ADD + 2* (i-1);
-		delay(100);
+		delay(10);
 		adcVal = readReg16(dev, addr);
 		if((ADC_TEST_VAL_LOW < adcVal) && (adcVal < ADC_TEST_VAL_HIGH))
 		{
