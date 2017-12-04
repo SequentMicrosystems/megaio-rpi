@@ -1489,10 +1489,10 @@ void doHelp(int argc, char *argv[])
 		}
 		else if(strcasecmp(argv[2], "test") == 0)
 		{
-			printf("\tatest:  	Test the board, it pass onliy with test card connected\n");
-			printf("\tWARNING: This option should not be run with your board connected to external devices\n");
-			printf("\tUsage:	megaio <id> test\n");
-			printf("\tExample:	megaio 0 test\n");
+			printf("\ttest:   \tTest the board, it pass only with test card connected\n");
+			printf("\tWARNING:\tThis option should not be run with your board connected to external devices\n");
+			printf("\tUsage:  \tmegaio <id> test\n");
+			printf("\tExample:\tmegaio 0 test\n");
 		}
 	}
 	else
