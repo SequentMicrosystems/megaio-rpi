@@ -54,8 +54,11 @@ char *usage = "Usage:	megaio -h <command>\n"
               	"         megaio <id> awrite <value>\n"
               	"         megaio <id> optread <channel>\n"
               	"         megaio <id> optread\n"
+				"         megaio <id> ocread\n"
+				"         megaio <id> ocwrite <ch> <on/off; 1/0>\n"
+				"         megaio <id> ocwrite <val>\n"
               	"         megaio <id> optirqset <channel> <rising/falling/change/none>\n"
-		"         megaio <id> optitRead\n"
+			"         megaio <id> optitRead\n"
               	"         megaio <id> iodwrite <channel> <in/out>\n"
               	"         megaio <id> iodread <channel>\n"
               	"         megaio <id> iodread\n" 
@@ -399,21 +402,21 @@ static int wrLedsR(int stack, int val)
 	else
 	{
 #ifdef DEBUG_LED
-		fprintf(stderr,"Invalid stack level\n");
+		printf("Invalid stack level\n");
 #endif
 		return -1;
 	}
 	if(val < 0 || val > 255)
 	{
 #ifdef DEBUG_LED
-		fprintf(stderr,"Led value out of range\n");
+		printf("Led value out of range\n");
 #endif
 		return -1;
 	}
 	if(dev == -1)
 	{
 #ifdef DEBUG_LED
-		fprintf(stderr,"No led board detected\n");
+		printf("No led board detected\n");
 #endif
 		return -1;
 	}
@@ -465,15 +468,15 @@ static void doRelayWrite(int argc, char *argv[])
 
 	if ((argc != 5) && (argc != 4))
 	{
-		fprintf (stderr, "Usage: megaio <id> rwrite <relay number> <on/off> \n") ;
-		fprintf (stderr, "Usage: megaio <id> rwrite <relay reg value> \n") ;
+		printf( "Usage: megaio <id> rwrite <relay number> <on/off> \n") ;
+		printf( "Usage: megaio <id> rwrite <relay reg value> \n") ;
 		exit (1) ;
 	}
 
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if(argc == 5)
@@ -481,7 +484,7 @@ static void doRelayWrite(int argc, char *argv[])
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > 8))
 		{
-			fprintf(stderr, "Relay number value out of range\n");
+			printf( "Relay number value out of range\n");
 			exit(1);
 		}
 
@@ -527,7 +530,7 @@ static void doRelayWrite(int argc, char *argv[])
 		#endif
 		if(retry == 0)
 		{
-			fprintf(stderr, "Fail to write relay\n");
+			printf( "Fail to write relay\n");
 			exit(1);
 		}
 	}
@@ -536,7 +539,7 @@ static void doRelayWrite(int argc, char *argv[])
 		val = atoi (argv [3]) ;
 		if(val < 0 || val > 255)
 		{
-			fprintf(stderr, "Invalid relay value\n");
+			printf( "Invalid relay value\n");
 			exit(1);
 		}
 		retry = RETRY_TIMES;
@@ -547,7 +550,7 @@ static void doRelayWrite(int argc, char *argv[])
 		}
 		if(retry == 0)
 		{
-			fprintf(stderr, "Fail to write relay\n");
+			printf( "Fail to write relay\n");
 			exit(1);
 		}
 	}
@@ -569,7 +572,7 @@ static void doRelayRead(int argc, char *argv[])
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 
@@ -578,7 +581,7 @@ static void doRelayRead(int argc, char *argv[])
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > 8))
 		{
-			fprintf(stderr, "Relay number value out of range\n");
+			printf( "Relay number value out of range\n");
 			exit(1);
 		}
 
@@ -600,7 +603,7 @@ static void doRelayRead(int argc, char *argv[])
 	}
 	else
 	{
-		fprintf (stderr, "Usage: %s read relay value\n", argv [0]) ;
+		printf( "Usage: %s read relay value\n", argv [0]) ;
 		exit (1) ;
 	}
 }
@@ -618,7 +621,7 @@ static void doAnalogRead(int argc, char *argv[])
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 
@@ -627,7 +630,7 @@ static void doAnalogRead(int argc, char *argv[])
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > 8))
 		{
-			fprintf(stderr, "Analog channel number %d out of range\n", pin);
+			printf( "Analog channel number %d out of range\n", pin);
 			exit(1);
 		}
 
@@ -637,7 +640,7 @@ static void doAnalogRead(int argc, char *argv[])
 	}
 	else 
 	{
-		fprintf (stderr, "Usage: %s analog read \n", argv [0]) ;
+		printf( "Usage: %s analog read \n", argv [0]) ;
 		exit (1) ;
 	} 
 }
@@ -656,18 +659,18 @@ static void doAnalogWrite(int argc, char *argv[])
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if (argc != 4)
 	{
-		fprintf (stderr, "Usage: %s analog write\n", argv [0]) ;
+		printf( "Usage: %s analog write\n", argv [0]) ;
 		exit (1) ;
 	}
 	val = atoi(argv[3]);
 	if((val < 0) || (val > 4095))
 	{
-		fprintf(stderr, "analog write value out of range\n");
+		printf( "analog write value out of range\n");
 		exit(1);
 	}
 	writeReg16(dev, DAC_VAL_H_MEM_ADD, val);
@@ -687,7 +690,7 @@ static void doOptoInRead(int argc, char *argv[])
 	dev = doBoardInit(gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
   
@@ -696,7 +699,7 @@ static void doOptoInRead(int argc, char *argv[])
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > 8))
 		{
-			fprintf(stderr, "Opto In channel out of range\n");
+			printf( "Opto In channel out of range\n");
 			exit(1);
 		}
 
@@ -718,7 +721,7 @@ static void doOptoInRead(int argc, char *argv[])
 	}
 	else
 	{
-		fprintf (stderr, "Usage: %s read opto pins \n", argv [0]) ;
+		printf( "Usage: %s read opto pins \n", argv [0]) ;
 		exit (1) ;
 	} 
 }
@@ -737,7 +740,7 @@ static void doOptoInIrq(int argc, char *argv[])
   dev = doBoardInit (gHwAdd);
   if(dev <= 0)
   {
-    fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+    printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
     exit(1);
   }
   if (argc == 5)
@@ -745,7 +748,7 @@ static void doOptoInIrq(int argc, char *argv[])
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > 8))
 		{
-			fprintf(stderr, "Opto in pin number value out of range\n");
+			printf( "Opto in pin number value out of range\n");
 			exit(1);
 		}
 	  
@@ -797,7 +800,7 @@ static void doOptoInIrq(int argc, char *argv[])
 			break;
 			
 			default:
-				fprintf(stderr, "Invalid interrupt type %s\n", argv[4]);
+				printf( "Invalid interrupt type %s\n", argv[4]);
 				exit(1);
 			break;
 		}
@@ -810,7 +813,7 @@ static void doOptoInIrq(int argc, char *argv[])
 	}
 	else
 	{
-		fprintf (stderr, "megaio <id> optirq <channel> <rising/falling/change/none>\n") ;
+		printf( "megaio <id> optirq <channel> <rising/falling/change/none>\n") ;
 		exit (1) ;
 	}	
 }
@@ -827,7 +830,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if (argc == 3)
@@ -837,7 +840,7 @@ static void doOptoInIt(int argc)
 	}
 	else
 	{
-  		fprintf(stderr, "Invalid command\n");
+  		printf( "Invalid command\n");
 		exit(1);
 	}
  } 
@@ -853,7 +856,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if (argc == 5)
@@ -861,7 +864,7 @@ static void doOptoInIt(int argc)
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > GPIO_PIN_NUMBER))
 		{
-			fprintf(stderr, "IO pin number value out of range\n");
+			printf( "IO pin number value out of range\n");
 			exit(1);
 		}
 	  
@@ -895,12 +898,12 @@ static void doOptoInIt(int argc)
 	}
 	else if(argc == 4)
 	{
-		fprintf (stderr, "Not available on this version\n");
+		printf( "Not available on this version\n");
 		/*
 		val = atoi(argv[3]);
 		if((val < 0) || (val >  0x3ffff))
 		{
-			fprintf(stderr, "Usage: %s invalid io mode\n", argv[3]);
+			printf( "Usage: %s invalid io mode\n", argv[3]);
 			exit(1);
 		}
 		rVal = val;
@@ -908,7 +911,7 @@ static void doOptoInIt(int argc)
 	}
 	else
 	{
-		fprintf (stderr, "Usage: %s write io mode usage\n", argv [0]) ;
+		printf( "Usage: %s write io mode usage\n", argv [0]) ;
 		exit (1) ;
 	}
 }
@@ -926,7 +929,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit(gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	rVal = 0x3f;
@@ -936,7 +939,7 @@ static void doOptoInIt(int argc)
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > GPIO_PIN_NUMBER))
 		{
-			fprintf(stderr, "IO pin number value out of range\n");
+			printf( "IO pin number value out of range\n");
 			exit(1);
 		}
 	    
@@ -959,7 +962,7 @@ static void doOptoInIt(int argc)
 	}
 	else
 	{
-		fprintf (stderr, "Usage: %s read io mode usage\n", argv [0]) ;
+		printf( "Usage: %s read io mode usage\n", argv [0]) ;
 		exit (1) ;
 	}
 }		
@@ -977,7 +980,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit(gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	
@@ -987,7 +990,7 @@ static void doOptoInIt(int argc)
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > GPIO_PIN_NUMBER))
 		{
-			fprintf(stderr, "IO pin number value out of range\n");
+			printf( "IO pin number value out of range\n");
 			exit(1);
 		}
 	  
@@ -1016,12 +1019,12 @@ static void doOptoInIt(int argc)
 	}
 	else if(argc == 4)
 	{
-		fprintf (stderr, "Not available on this version\n");
+		printf( "Not available on this version\n");
 		/*val = atoi(argv[3]);
 		
 		if((val < 0) || (val >  0x3ffff))
 		{
-			fprintf(stderr, "Usage: %s invalid io mode\n", argv[3]);
+			printf( "Usage: %s invalid io mode\n", argv[3]);
 			exit(1);
 		}
 		rVal = val;
@@ -1029,7 +1032,7 @@ static void doOptoInIt(int argc)
 	}
 	else
 	{
-		fprintf (stderr, "Usage: %s write io mode usage\n", argv [0]) ;
+		printf( "Usage: %s write io mode usage\n", argv [0]) ;
 		exit (1) ;
 	}
 	
@@ -1049,7 +1052,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit(gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	rVal = 0x3f;
@@ -1059,7 +1062,7 @@ static void doOptoInIt(int argc)
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > GPIO_PIN_NUMBER))
 		{
-			fprintf(stderr, "IO pin number value out of range\n");
+			printf( "IO pin number value out of range\n");
 			exit(1);
 		}
 	    
@@ -1082,7 +1085,7 @@ static void doOptoInIt(int argc)
 	}
 	else
 	{
-		fprintf (stderr, "Usage: %s write io mode usage\n", argv [0]) ;
+		printf( "Usage: %s write io mode usage\n", argv [0]) ;
 		exit (1) ;
 	}
 }
@@ -1099,7 +1102,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if (argc == 5)
@@ -1107,7 +1110,7 @@ static void doOptoInIt(int argc)
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > GPIO_PIN_NUMBER))
 		{
-			fprintf(stderr, "IO pin number value out of range\n");
+			printf( "IO pin number value out of range\n");
 			exit(1);
 		}
 	  
@@ -1158,7 +1161,7 @@ static void doOptoInIt(int argc)
 			break;
 			 
 			default:
-				fprintf(stderr, "Invalid io irq type %s\n", argv[4] );
+				printf( "Invalid io irq type %s\n", argv[4] );
 				exit(1);
 			break;
 		}
@@ -1173,12 +1176,12 @@ static void doOptoInIt(int argc)
 	}
 	else if(argc == 4)
 	{
-		fprintf (stderr, "Not available on this version\n");
+		printf( "Not available on this version\n");
 		/*
 		val = atoi(argv[3]);
 		if((val < 0) || (val >  0x3ffff))
 		{
-			fprintf(stderr, "Usage: %s invalid io mode\n", argv[3]);
+			printf( "Usage: %s invalid io mode\n", argv[3]);
 			exit(1);
 		}
 		rVal = val;
@@ -1186,7 +1189,7 @@ static void doOptoInIt(int argc)
 	}
 	else
 	{
-		fprintf (stderr, "Usage: %s write io mode usage\n", argv [0]) ;
+		printf( "Usage: %s write io mode usage\n", argv [0]) ;
 		exit (1) ;
 	}
 }
@@ -1204,7 +1207,7 @@ static void doIoIt(int argc)
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if (argc == 3)
@@ -1214,7 +1217,7 @@ static void doIoIt(int argc)
 	}
 	else
 	{
-  		fprintf(stderr, "Invalid command\n");
+  		printf( "Invalid command\n");
 		exit(1);
 	}
  } 
@@ -1231,8 +1234,8 @@ static void doOcOutWrite(int argc, char *argv[])
 
 	if ((argc != 5) && (argc != 4))
 	{
-		fprintf (stderr, "Usage: megaio <id> owrite <oc number> <on/off> \n") ;
-		fprintf (stderr, "Usage: megaio <id> owrite <oc reg value> \n") ;
+		printf( "Usage: megaio <id> owrite <oc number> <on/off> \n") ;
+		printf( "Usage: megaio <id> owrite <oc reg value> \n") ;
     
 		exit (1) ;
 	}
@@ -1240,7 +1243,7 @@ static void doOcOutWrite(int argc, char *argv[])
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if(argc == 5)
@@ -1248,7 +1251,7 @@ static void doOcOutWrite(int argc, char *argv[])
 		pin = atoi (argv [3]) ;
 		if((pin < 1) || (pin > 4))
 		{
-			fprintf(stderr, "Open collector output number value out of range\n");
+			printf( "Open collector output number value out of range\n");
 			exit(1);
 		}
   
@@ -1294,7 +1297,7 @@ static void doOcOutWrite(int argc, char *argv[])
 #endif
 		if(retry == 0)
 		{
-			fprintf(stderr, "Fail to write open collector output\n");
+			printf( "Fail to write open collector output\n");
 			exit(1);
 		}
 	}
@@ -1303,7 +1306,7 @@ static void doOcOutWrite(int argc, char *argv[])
 		val = atoi (argv [3]) ;
 		if(val < 0 || val > 0x0f)
 		{
-			fprintf(stderr, "Invalid open collector output value\n");
+			printf( "Invalid open collector output value\n");
 			exit(1);
 		}
 		retry = RETRY_TIMES;
@@ -1315,7 +1318,7 @@ static void doOcOutWrite(int argc, char *argv[])
 		}
 		if(retry == 0)
 		{
-			fprintf(stderr, "Fail to write open collector output out\n");
+			printf( "Fail to write open collector output out\n");
 			exit(1);
 		}
 	}
@@ -1335,7 +1338,7 @@ static void doOcOutRead(int argc, char *argv[])
   dev = doBoardInit (gHwAdd);
   if(dev <= 0)
   {
-    fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+    printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
     exit(1);
   }
   
@@ -1344,7 +1347,7 @@ static void doOcOutRead(int argc, char *argv[])
     pin = atoi (argv [3]) ;
     if((pin < 1) || (pin > 4))
     {
-      fprintf(stderr, "Open collector output number value out of range\n");
+      printf( "Open collector output number value out of range\n");
       exit(1);
     }
 
@@ -1366,7 +1369,7 @@ static void doOcOutRead(int argc, char *argv[])
   }
   else
   {
-    fprintf (stderr, "Usage: %s read Open collector output value\n", argv [0]) ;
+    printf( "Usage: %s read Open collector output value\n", argv [0]) ;
     exit (1) ;
   }
   
@@ -1476,15 +1479,15 @@ void doHelp(int argc, char *argv[])
 		else if(strcasecmp(argv[2], "-lw") == 0)
 		{
 			printf("\t-lw:		Turn on/off LED's\n");
-			printf("\tUsage:	megaio -lw <led_nr> <on/off; 1/0> : turn on/off the 'led_nr' LED\n");
+			printf("\tUsage:    megaio -lw <led_nr> <on/off; 1/0> : turn on/off the 'led_nr' LED\n");
 			printf("\tExample:	megaio -lw 10 on\n");
-			printf("\tUsage:	megaio -lw <val> : hex value of all 32 LED's\n");
+			printf("\tUsage:    megaio -lw <val> : hex value of all 32 LED's\n");
 			printf("\tExample:	megaio -lw 55555555 : turn on all odd number LED's\n");
 		}
 		else if(strcasecmp(argv[2], "atest") == 0)
 		{
 			printf("\tatest:  	Test a adc channel, compute mean, peak to peak and stdDev\n");
-			printf("\tUsage:	megaio <id> atest <ch>\n");
+			printf("\tUsage:    megaio <id> atest <ch>\n");
 			printf("\tExample:	megaio 0 atest 2 : test ADC channel 2\n");
 		}
 		else if(strcasecmp(argv[2], "test") == 0)
@@ -1493,6 +1496,20 @@ void doHelp(int argc, char *argv[])
 			printf("\tWARNING:\tThis option should not be run with your board connected to external devices\n");
 			printf("\tUsage:  \tmegaio <id> test\n");
 			printf("\tExample:\tmegaio 0 test\n");
+		}
+		else if(strcasecmp(argv[2], "ocread") == 0)
+		{
+			printf("\tocread:   Read the open-collector output's\n");
+			printf("\tUsage:    megaio <id> ocread\n");
+			printf("\tExample:  megaio 0 ocread\n");
+		}
+		else if(strcasecmp(argv[2], "ocwrite") == 0)
+		{
+			printf("\tocwrite:  Write the open-collectot output's\n");
+			printf("\tUsage:    megaio <id> ocwrite <val>\n");
+			printf("\tExample:  megaio 0 ocwrite 5\n");
+			printf("\tUsage:    megaio <id> ocwrite <ch> <val>\n");
+			printf("\tExample:  megaio 0 ocwrite 2 on\n");
 		}
 	}
 	else
@@ -1510,7 +1527,7 @@ void doBoard(int argc)
 		dev = doBoardInit(gHwAdd);
 		if(dev <= 0)
 		{
-			fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+			printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 			exit(1);
 		}
 		hwMajor = wiringPiI2CReadReg8(dev, REVISION_HW_MAJOR_MEM_ADD);
@@ -1521,7 +1538,7 @@ void doBoard(int argc)
 	}
 	else
 	{
-		fprintf (stderr, "Usage: megaio <id> board\n");
+		printf( "Usage: megaio <id> board\n");
 	}
 }
 
@@ -1548,7 +1565,7 @@ static void  doAdcTest(int argc, char* argv[])
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if(argc != 4)
@@ -1616,7 +1633,7 @@ static void doTest(int argc, char* argv[])
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		fprintf(stderr, "MegaIO id %d not detected\n", gHwAdd-0x31);
+		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
 		exit(1);
 	}
 	if(argc == 4)
@@ -1624,7 +1641,7 @@ static void doTest(int argc, char* argv[])
 		file = fopen( argv[3], "w");
 		if(!file)
 		{
-			fprintf(stderr, "Fail to open result file\n");
+			printf( "Fail to open result file\n");
 			//return -1;
 		}
 		//fseek(file, SEEK_SET);
@@ -1659,7 +1676,7 @@ static void doTest(int argc, char* argv[])
 			}
 			if(retry == 0)
 			{
-				fprintf(stderr, "Fail to write relay\n");
+				printf( "Fail to write relay\n");
 				if(file)
 					fclose(file);
 				exit(1);
@@ -1688,7 +1705,7 @@ static void doTest(int argc, char* argv[])
 			}
 			if(retry == 0)
 			{
-				fprintf(stderr, "Fail to write relay!\n");
+				printf( "Fail to write relay!\n");
 				if(file)
 					fclose(file);
 				exit(1);
@@ -1853,15 +1870,15 @@ static void doTest(int argc, char* argv[])
 #endif
 
 	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x34);
-	delay(100);
+	delay(10);
 	wiringPiI2CWriteReg8 (dev,GPIO_VAL_MEM_ADD, 0);
-	delay(100);
+	delay(10);
 	/*wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
 	delay(100);
 	wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 4);
 	delay(100);*/
 	ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-	delay(100);
+	delay(10);
 	dacFault = 0;
 	
 	if(ioRead != 0)
@@ -1881,9 +1898,9 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif
-		delay(100);
+		delay(10);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 1);
-		delay(100);
+		delay(10);
 		ioRead =wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
 		if(ioRead != 5)
 		{
@@ -1911,11 +1928,11 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif		
-		delay(100);
+		delay(10);
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 1);
-		delay(100);
+		delay(10);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 2);
-		delay(100);
+		delay(10);
 		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
 		if(ioRead != 18)
 		{
@@ -1943,13 +1960,13 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif		
-		delay(100);
+		delay(10);
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
-		delay(100);
+		delay(10);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 4);
-		delay(100);
+		delay(10);
 		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-		delay(100);
+		delay(10);
 		if(ioRead != 40)
 		{
 			if(file)
@@ -1978,7 +1995,7 @@ static void doTest(int argc, char* argv[])
 #endif
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 4);
 	}
-	delay(100);
+	delay(10);
 	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x3f);	
 	if(file)
 	{
@@ -1996,7 +2013,7 @@ int main(int argc, char *argv [])
   
   if (argc == 1)
   {
-    fprintf (stderr, "%s\n", usage) ;
+    printf( "%s\n", usage) ;
     return 1 ;
   }
 
@@ -2039,13 +2056,13 @@ int main(int argc, char *argv [])
   
   if(argc < 3)
   {
-	fprintf (stderr, "%s\n", usage) ;
+	printf( "%s\n", usage) ;
     return 1 ;
   }
   id = atoi(argv[1]);
   if((id < 0) || (id > 3))
   {
-    fprintf(stderr, "invalid boartd id\n");
+    printf( "invalid boartd id\n");
 	return 1;
   }
   gHwAdd = 0x31 + id;
