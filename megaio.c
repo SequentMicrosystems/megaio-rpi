@@ -1616,6 +1616,7 @@ static void doTest(int argc, char* argv[])
 	u8 relVal, valR, addr;
 	int relayResult = 0;
 	u16 adcVal;
+	u16 dacVal = 0;
 	u8 dacFault = 0;
 	FILE* file = NULL;
 	const u8 relayOrder[8] = {1, 2, 5, 6, 7, 8, 4, 3};
@@ -1745,7 +1746,7 @@ static void doTest(int argc, char* argv[])
 		if(i == 7)
 		{
 			writeReg16(dev, DAC_VAL_H_MEM_ADD, 0x0000);
-			delay(10); 
+			delay(50); 
 			addr = ADC_VAL_MEM_ADD + 2* (i-1);
 			adcVal = readReg16(dev, addr);
 			if(adcVal > 100)
@@ -1761,12 +1762,16 @@ static void doTest(int argc, char* argv[])
 				dacFault++;
 				continue;
 			}
-			
-			writeReg16(dev, DAC_VAL_H_MEM_ADD, 3000);
-			delay(20); 		
+			while (dacVal != 3000)
+			{
+				writeReg16(dev, DAC_VAL_H_MEM_ADD, 3000);
+				delay(20);
+				dacVal = readReg16(dev,DAC_VAL_H_MEM_ADD);
+				delay(20);
+			}
 		}
 		addr = ADC_VAL_MEM_ADD + 2* (i-1);
-		delay(10);
+		delay(50);
 		adcVal = readReg16(dev, addr);
 		if((ADC_TEST_VAL_LOW < adcVal) && (adcVal < ADC_TEST_VAL_HIGH))
 		{
@@ -1828,9 +1833,9 @@ static void doTest(int argc, char* argv[])
 	getchar();
 #endif
 		
-		delay(10);
+		delay(20);
 		wiringPiI2CWriteReg8 (dev,OC_OUT_SET_MEM_ADD, ocCh);
-		delay(10);
+		delay(20);
 		opto = wiringPiI2CReadReg8(dev, OPTO_IN_MEM_ADD);
 		if(opto == optoTab[ocCh - 1])
 		{
@@ -1859,7 +1864,7 @@ static void doTest(int argc, char* argv[])
 		}
 		
 		
-		delay(10);
+		delay(20);
 		wiringPiI2CWriteReg8 (dev,OC_OUT_CLR_MEM_ADD, ocCh);	
 	}
 	// ********************** I/O test*********************************************
@@ -1870,15 +1875,15 @@ static void doTest(int argc, char* argv[])
 #endif
 
 	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x34);
-	delay(10);
+	delay(20);
 	wiringPiI2CWriteReg8 (dev,GPIO_VAL_MEM_ADD, 0);
-	delay(10);
+	delay(20);
 	/*wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
 	delay(100);
 	wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 4);
 	delay(100);*/
 	ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-	delay(10);
+	delay(20);
 	dacFault = 0;
 	
 	if(ioRead != 0)
@@ -1898,9 +1903,9 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif
-		delay(10);
+		delay(20);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 1);
-		delay(10);
+		delay(20);
 		ioRead =wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
 		if(ioRead != 5)
 		{
@@ -1928,11 +1933,11 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif		
-		delay(10);
+		delay(20);
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 1);
-		delay(10);
+		delay(20);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 2);
-		delay(10);
+		delay(20);
 		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
 		if(ioRead != 18)
 		{
@@ -1960,13 +1965,13 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif		
-		delay(10);
+		delay(20);
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
-		delay(10);
+		delay(20);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 4);
-		delay(10);
+		delay(20);
 		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-		delay(10);
+		delay(20);
 		if(ioRead != 40)
 		{
 			if(file)
@@ -1995,7 +2000,7 @@ static void doTest(int argc, char* argv[])
 #endif
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 4);
 	}
-	delay(10);
+	delay(20);
 	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x3f);	
 	if(file)
 	{
