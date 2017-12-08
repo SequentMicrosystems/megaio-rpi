@@ -1762,12 +1762,14 @@ static void doTest(int argc, char* argv[])
 				dacFault++;
 				continue;
 			}
-			while (dacVal != 3000)
+			retry = 0;
+			while ((dacVal != 3000) && (retry < 10))
 			{
 				writeReg16(dev, DAC_VAL_H_MEM_ADD, 3000);
 				delay(20);
 				dacVal = readReg16(dev,DAC_VAL_H_MEM_ADD);
 				delay(20);
+				retry ++;
 			}
 		}
 		addr = ADC_VAL_MEM_ADD + 2* (i-1);
