@@ -1745,11 +1745,19 @@ static void doTest(int argc, char* argv[])
 	{
 		if(i == 7)
 		{
-			writeReg16(dev, DAC_VAL_H_MEM_ADD, 0x0000);
-			delay(50); 
+			retry = 0;
+			dacVal = 1;
+			while ((dacVal != 0) && (retry < 10))
+			{
+				writeReg16(dev, DAC_VAL_H_MEM_ADD, 0x0000);
+				delay(50); 
+				dacVal = readReg16(dev,DAC_VAL_H_MEM_ADD);
+				delay(20);
+				retry ++;
+			}
 			addr = ADC_VAL_MEM_ADD + 2* (i-1);
 			adcVal = readReg16(dev, addr);
-			if(adcVal > 100)
+			if(adcVal > 150)
 			{
 				if(file)
 				{
