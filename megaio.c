@@ -1649,97 +1649,101 @@ static void doTest(int argc, char* argv[])
 	}
 	
 //relay test****************************	
-	relVal = 0;
-	// Setup wiringPi
-	printf("Is relay perform corectly? Press y for yes or any key for no....");
-	wiringPiSetupSys ();
-	 piThreadCreate (waitForKey);
-	while(relayResult == 0)
+	if (strcasecmp( argv[2], "test") == 0)
 	{
-		
-		for (i = 0; i < 8; i++)
+		relVal = 0;
+		// Setup wiringPi
+		printf("Is relay perform corectly? Press y for yes or any key for no....");
+		wiringPiSetupSys ();
+		 piThreadCreate (waitForKey);
+		while(relayResult == 0)
 		{
-			piLock (COUNT_KEY) ;
-			relayResult = globalResponse;
-			piUnlock(COUNT_KEY);
-			if(relayResult != 0)
+			
+			for (i = 0; i < 8; i++)
 			{
-				break;
+				piLock (COUNT_KEY) ;
+				relayResult = globalResponse;
+				piUnlock(COUNT_KEY);
+				if(relayResult != 0)
+				{
+					break;
+				}
+				valR = 0;
+				relVal = (u8)1<< (relayOrder[i] -1);
+			
+				retry = RETRY_TIMES;
+				while((retry > 0) && ((valR & relVal) == 0))
+				{
+					wiringPiI2CWriteReg8 (dev,RELAY_ON_MEM_ADD, relayOrder[i]);	
+					valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+				}
+				if(retry == 0)
+				{
+					printf( "Fail to write relay\n");
+					if(file)
+						fclose(file);
+					exit(1);
+				}		
+				delay(150);
 			}
-			valR = 0;
-			relVal = (u8)1<< (relayOrder[i] -1);
+			//delay(150);
 		
-			retry = RETRY_TIMES;
-			while((retry > 0) && ((valR & relVal) == 0))
-			{
-				wiringPiI2CWriteReg8 (dev,RELAY_ON_MEM_ADD, relayOrder[i]);	
-				valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+			for (i = 0; i < 8; i++)
+			{	
+				piLock (COUNT_KEY) ;
+				relayResult = globalResponse;
+				piUnlock(COUNT_KEY);
+				if(relayResult != 0)
+				{
+					break;
+				}
+				
+				valR = 0xff;
+				relVal = (u8)1<< (relayOrder[i] -1);
+				retry = RETRY_TIMES;
+				while((retry > 0) && ((valR & relVal) != 0))
+				{
+					wiringPiI2CWriteReg8 (dev,RELAY_OFF_MEM_ADD, relayOrder[i]);
+					valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+				}
+				if(retry == 0)
+				{
+					printf( "Fail to write relay!\n");
+					if(file)
+						fclose(file);
+					exit(1);
+				}
+				
+				delay(150);
 			}
-			if(retry == 0)
-			{
-				printf( "Fail to write relay\n");
-				if(file)
-					fclose(file);
-				exit(1);
-			}		
-			delay(150);
 		}
-		//delay(150);
-	
-		for (i = 0; i < 8; i++)
-		{	
-			piLock (COUNT_KEY) ;
-			relayResult = globalResponse;
-			piUnlock(COUNT_KEY);
-			if(relayResult != 0)
-			{
-				break;
-			}
-			
-			valR = 0xff;
-			relVal = (u8)1<< (relayOrder[i] -1);
-			retry = RETRY_TIMES;
-			while((retry > 0) && ((valR & relVal) != 0))
-			{
-				wiringPiI2CWriteReg8 (dev,RELAY_OFF_MEM_ADD, relayOrder[i]);
-				valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
-			}
-			if(retry == 0)
-			{
-				printf( "Fail to write relay!\n");
-				if(file)
-					fclose(file);
-				exit(1);
-			}
-			
-			delay(150);
-		}
-	}
-	wiringPiI2CWriteReg8 (dev,RELAY_MEM_ADD, 0x00);
-	if(relayResult == YES)
-	{
-		if(file)
+		wiringPiI2CWriteReg8 (dev,RELAY_MEM_ADD, 0x00);
+		if(relayResult == YES)
 		{
-			fprintf(file, "Relay Test ............................ PASS\n");
+			if(file)
+			{
+				fprintf(file, "Relay Test ............................ PASS\n");
+			}
+			else
+			{
+				printf("Relay Test ............................ PASS\n");
+			}
 		}
 		else
 		{
-			printf("Relay Test ............................ PASS\n");
+			if(file)
+			{
+				fprintf(file, "Relay Test ............................ FAIL!\n");
+			}
+			else
+			{
+				printf("Relay Test ............................ FAIL!\n");
+			}
 		}
-	}
-	else
-	{
-		if(file)
-		{
-			fprintf(file, "Relay Test ............................ FAIL!\n");
-		}
-		else
-		{
-			printf("Relay Test ............................ FAIL!\n");
-		}
-	}
+		
 // end relay test 
-
+	}
+	
 // adc test ********************************************
 	for(i = 1; i< 9;i++)
 	{
@@ -2100,6 +2104,7 @@ int main(int argc, char *argv [])
   else if (strcasecmp (argv [2], "ocwrite"   ) == 0)	{ doOcOutWrite     (argc, argv) ;	return 0 ; }
   else if (strcasecmp (argv [2], "ocread"    ) == 0)	{ doOcOutRead      (argc, argv) ;	return 0 ; }
   else if (strcasecmp (argv [2], "test"      ) == 0)	{ doTest           (argc, argv) ;	return 0 ; }
+  else if (strcasecmp (argv [2], "testc"     ) == 0)	{ doTest           (argc, argv) ;	return 0 ; }
   else if (strcasecmp (argv [2], "atest"     ) == 0)	{ doAdcTest        (argc, argv) ;	return 0 ; }
   else { printf( "%s\n", usage) ; return 1;}
   return 0;
