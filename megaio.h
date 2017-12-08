@@ -39,7 +39,7 @@
 
 #define VERSION_BASE	(int)2
 #define VERSION_MAJOR	(int)1
-#define VERSION_MINOR	(int)0
+#define VERSION_MINOR	(int)1
 
 typedef uint8_t u8;
 typedef uint16_t u16;
