@@ -1795,6 +1795,14 @@ static void doTest(int argc, char* argv[])
 		addr = ADC_VAL_MEM_ADD + 2* (i-1);
 		delay(1);
 		adcVal = readReg16(dev, addr);
+		retry = 0;
+		while(((ADC_TEST_VAL_LOW > adcVal) || (adcVal > ADC_TEST_VAL_HIGH)) && (retry < 10))
+		{
+			delay(2);
+			adcVal = readReg16(dev, addr);
+			retry ++;
+		}
+		
 		if((ADC_TEST_VAL_LOW < adcVal) && (adcVal < ADC_TEST_VAL_HIGH))
 		{
 			if(file)
