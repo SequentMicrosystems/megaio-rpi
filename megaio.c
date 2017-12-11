@@ -1940,10 +1940,15 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif
-		delay(1);
-		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 1);
-		delay(1);
-		ioRead =wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+		retry = 0;
+		while((ioRead != 5) && (retry < 10))
+		{
+			delay(1);
+			wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 1);
+			delay(1);
+			ioRead =wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+			retry ++;
+		}
 		if(ioRead != 5)
 		{
 			if(file)
@@ -1969,13 +1974,19 @@ static void doTest(int argc, char* argv[])
 #ifdef TEST_RESET
 	printf("hit a key\n");
 	getchar();
-#endif		
-		delay(1);
-		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 1);
-		delay(1);
-		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 2);
-		delay(1);
-		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+#endif	
+		retry = 0;
+		while((ioRead != 18) && (retry < 10))
+		{	
+			delay(1);
+			wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 1);
+			delay(1);
+			wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 2);
+			delay(1);
+			ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+			retry ++;
+		}
+		
 		if(ioRead != 18)
 		{
 			if(file)
@@ -2001,14 +2012,20 @@ static void doTest(int argc, char* argv[])
 #ifdef TEST_RESET
 	printf("hit a key\n");
 	getchar();
-#endif		
-		delay(1);
-		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
-		delay(1);
-		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 4);
-		delay(1);
-		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-		delay(1);
+#endif	
+		retry = 0;
+		while((ioRead != 40) && (retry < 10))
+		{
+			delay(1);
+			wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
+			delay(1);
+			wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 4);
+			delay(1);
+			ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+			delay(1);
+			retry ++;
+		}
+		
 		if(ioRead != 40)
 		{
 			if(file)
