@@ -126,7 +126,7 @@ int readReg16(int dev, int add)
 	val = wiringPiI2CReadReg16(dev, add);
 	ret = 0xff & (val >> 8);
 	ret+= 0xff00 & (val << 8);
-	//delay(100); //megaio <id> optirq <channel> <rising/falling/change/none>\n"
+	//delay(1); //megaio <id> optirq <channel> <rising/falling/change/none>\n"
 
 	return ret;
 }
@@ -165,7 +165,7 @@ int writeReg16(int dev, int add, int val)
 	wVal = 0xff & (val >> 8);
 	wVal += 0xff00 & (val << 8);
 	wiringPiI2CWriteReg16(dev,add, wVal);
-	delay(10);
+	delay(1);
 	return 0;
 }
 
@@ -444,7 +444,7 @@ static void doLedTest(void)
 		val += 1 << led;
 		setLedVal(1, 0xffff & ~val);
 		setLedVal(0, 0xffff & ~(val >> 16));
-		delay(50);
+		delay(100);
 	}
 	delay(250);
 	val = 0;
@@ -453,7 +453,7 @@ static void doLedTest(void)
 		val += 1 << led;
 		setLedVal(1, 0xffff & val);
 		setLedVal(0, 0xffff & (val >> 16));
-		delay(50);
+		delay(100);
 	}
 }
 
@@ -1686,7 +1686,7 @@ static void doTest(int argc, char* argv[])
 				}		
 				delay(150);
 			}
-			//delay(150);
+			//delay(10);
 		
 			for (i = 0; i < 8; i++)
 			{	
@@ -1717,7 +1717,9 @@ static void doTest(int argc, char* argv[])
 				delay(150);
 			}
 		}
+		
 		wiringPiI2CWriteReg8 (dev,RELAY_MEM_ADD, 0x00);
+		delay(150);
 		if(relayResult == YES)
 		{
 			if(file)
@@ -1751,13 +1753,17 @@ static void doTest(int argc, char* argv[])
 		{
 			retry = 0;
 			dacVal = 1;
-			while ((dacVal != 0) && (retry < 10))
+			adcVal = 200;
+			while (((dacVal != 0)|| (adcVal > 150)) && (retry < 100))
 			{
 				writeReg16(dev, DAC_VAL_H_MEM_ADD, 0x0000);
-				delay(50); 
+				delay(2); 
 				dacVal = readReg16(dev,DAC_VAL_H_MEM_ADD);
-				delay(20);
+				delay(2);
 				retry ++;
+				addr = ADC_VAL_MEM_ADD + 2* (i-1);
+				adcVal = readReg16(dev, addr);
+				delay(2);
 			}
 			addr = ADC_VAL_MEM_ADD + 2* (i-1);
 			adcVal = readReg16(dev, addr);
@@ -1775,17 +1781,19 @@ static void doTest(int argc, char* argv[])
 				continue;
 			}
 			retry = 0;
-			while ((dacVal != 3000) && (retry < 10))
+			while (((dacVal != 3000)|| (adcVal < ADC_TEST_VAL_LOW)) && (retry < 100))
 			{
 				writeReg16(dev, DAC_VAL_H_MEM_ADD, 3000);
-				delay(20);
+				delay(2);
 				dacVal = readReg16(dev,DAC_VAL_H_MEM_ADD);
-				delay(20);
+				delay(2);
 				retry ++;
+				addr = ADC_VAL_MEM_ADD + 2* (i-1);
+				adcVal = readReg16(dev, addr);
 			}
 		}
 		addr = ADC_VAL_MEM_ADD + 2* (i-1);
-		delay(50);
+		delay(1);
 		adcVal = readReg16(dev, addr);
 		if((ADC_TEST_VAL_LOW < adcVal) && (adcVal < ADC_TEST_VAL_HIGH))
 		{
@@ -1846,11 +1854,16 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif
-		
-		delay(20);
-		wiringPiI2CWriteReg8 (dev,OC_OUT_SET_MEM_ADD, ocCh);
-		delay(20);
-		opto = wiringPiI2CReadReg8(dev, OPTO_IN_MEM_ADD);
+		retry = 0;
+		opto = optoTab[ocCh - 1] + 1;
+		while((opto != optoTab[ocCh - 1]) && (retry < 10))
+		{
+			//delay(1);
+			wiringPiI2CWriteReg8 (dev,OC_OUT_SET_MEM_ADD, ocCh);
+			//delay(1);
+			opto = wiringPiI2CReadReg8(dev, OPTO_IN_MEM_ADD);
+			retry ++;
+		}
 		if(opto == optoTab[ocCh - 1])
 		{
 			//sprintf(outTest, "%s PASS\n", optTest[ocCh -1]);
@@ -1878,7 +1891,7 @@ static void doTest(int argc, char* argv[])
 		}
 		
 		
-		delay(20);
+		delay(1);
 		wiringPiI2CWriteReg8 (dev,OC_OUT_CLR_MEM_ADD, ocCh);	
 	}
 	// ********************** I/O test*********************************************
@@ -1887,17 +1900,19 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif
-
-	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x34);
-	delay(20);
-	wiringPiI2CWriteReg8 (dev,GPIO_VAL_MEM_ADD, 0);
-	delay(20);
-	/*wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
-	delay(100);
-	wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 4);
-	delay(100);*/
-	ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-	delay(20);
+	retry = 0;
+	ioRead = 1;
+	while((ioRead != 0) && (retry < 10))
+	{
+		wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x34);
+		delay(1);
+		wiringPiI2CWriteReg8 (dev,GPIO_VAL_MEM_ADD, 0);
+		delay(1);
+	
+		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+		delay(1);
+		retry ++;
+	}
 	dacFault = 0;
 	
 	if(ioRead != 0)
@@ -1917,9 +1932,9 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif
-		delay(20);
+		delay(1);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 1);
-		delay(20);
+		delay(1);
 		ioRead =wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
 		if(ioRead != 5)
 		{
@@ -1947,11 +1962,11 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif		
-		delay(20);
+		delay(1);
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 1);
-		delay(20);
+		delay(1);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 2);
-		delay(20);
+		delay(1);
 		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
 		if(ioRead != 18)
 		{
@@ -1979,13 +1994,13 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif		
-		delay(20);
+		delay(1);
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
-		delay(20);
+		delay(1);
 		wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 4);
-		delay(20);
+		delay(1);
 		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-		delay(20);
+		delay(1);
 		if(ioRead != 40)
 		{
 			if(file)
@@ -2014,7 +2029,7 @@ static void doTest(int argc, char* argv[])
 #endif
 		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 4);
 	}
-	delay(20);
+	delay(1);
 	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x3f);	
 	if(file)
 	{
