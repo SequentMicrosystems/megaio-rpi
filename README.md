@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://www.sequentmicrosystems.com/images/footer.jpg" height="79px" width="810px"/>
+  <img src="https://www.sequentmicrosystems.com/images/footer.jpg">
 </p>
 
 # megaio-rpi
