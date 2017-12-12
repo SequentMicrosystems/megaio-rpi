@@ -1,10 +1,8 @@
 # megaio-rpi
 --------------------------------------------
-This is the command to control Raspberry Pi Mega-IO Expansion Card 
-https://www.sequentmicrosystems.com/megaio.html
+This is the command to control [Raspberry Pi Mega-IO Expansion Card](https://www.sequentmicrosystems.com/megaio.html)
 
-Before compiling you have to install Wiring Pi 
-http://wiringpi.com/download-and-install/ (many thanks to Gordon Henderson for the library)
+Before compiling you have to install [Wiring Pi](http://wiringpi.com/download-and-install/), many thanks to Gordon Henderson for the library
 
 ## Usage
 --------------------------------------------
