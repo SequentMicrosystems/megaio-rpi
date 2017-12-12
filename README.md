@@ -6,18 +6,18 @@ Before compiling you have to install [Wiring Pi](http://wiringpi.com/download-an
 
 ## Usage
 --------------------------------------------
-After you clone or download the source code, run the following commands:
 
-  ~$ cd megaio-rpi/
-  
-  ~/megaio-rpi$ sudo make install
-  
- Now you can access all the functions of the Mega-IO board through the command "megaio"
- If you clone the repository any update can be made with the following commands:
- 
-  ~$ cd megaio-rpi/
-  
-  ~/megaio-rpi$ git pull
+```bash
+~$ git clone https://github.com/alexburcea2877/megaio-rpi.git
+~$ cd megaio-rpi/
+~/megaio-rpi$ sudo make install
+```
 
-  ~/megaio-rpi$ sudo make install
-  
+Now you can access all the functions of the Mega-IO board through the command "megaio"
+If you clone the repository any update can be made with the following commands:
+
+```bash
+~$ cd megaio-rpi/  
+~/megaio-rpi$ git pull
+~/megaio-rpi$ sudo make install
+```  
