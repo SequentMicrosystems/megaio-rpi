@@ -29,7 +29,7 @@
 #define YES		1
 #define NO		2
 #define ADC_TEST_VAL_LOW	2850 	
-#define ADC_TEST_VAL_HIGH	3250	
+#define ADC_TEST_VAL_HIGH	3300	
 
 #define DEBUG_LED
 //#define DEBUG_TEST 1
