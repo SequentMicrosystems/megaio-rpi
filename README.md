@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://www.sequentmicrosystems.com/images/footer.png" height="79px" width="auto"/>
+  <img src="https://www.sequentmicrosystems.com/images/footer.png" height="auto" width="auto"/>
 </p>
 
 
