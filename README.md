@@ -5,12 +5,14 @@
 
 # megaio-rpi
 ============
+
 This is the command to control [Raspberry Pi Mega-IO Expansion Card](https://www.sequentmicrosystems.com/megaio.html)
 
 Before compiling you have to install [Wiring Pi](http://wiringpi.com/download-and-install/), many thanks to Gordon Henderson for the library
 
 ## Usage
 ========
+
 ```bash
 ~$ git clone https://github.com/alexburcea2877/megaio-rpi.git
 ~$ cd megaio-rpi/
