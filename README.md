@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="https://www.sequentmicrosystems.com/images/footer.png" height="79px" width="auto" algt="Mraa Logo"/>
+</p>
 # megaio-rpi
 --------------------------------------------
 This is the command to control [Raspberry Pi Mega-IO Expansion Card](https://www.sequentmicrosystems.com/megaio.html)
