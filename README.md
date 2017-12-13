@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="https://www.sequentmicrosystems.com/images/footer.png" height="79px" width="auto" algt="Mraa Logo"/>
+  <img src="https://www.sequentmicrosystems.com/images/footer.png" height="79px" width="auto"/>
 </p>
+
 
 # megaio-rpi
 
