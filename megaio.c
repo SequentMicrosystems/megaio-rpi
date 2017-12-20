@@ -1776,6 +1776,7 @@ static void doTest(int argc, char* argv[])
 				else
 				{
 					printf("ADC ch 7 / DAC test ................... FAIL!: %d\n", adcVal);
+					printf("DAC Retry %d\n", retry);
 				}
 				dacFault++;
 				continue;
@@ -1796,7 +1797,7 @@ static void doTest(int argc, char* argv[])
 		delay(1);
 		adcVal = readReg16(dev, addr);
 		retry = 0;
-		while(((ADC_TEST_VAL_LOW > adcVal) || (adcVal > ADC_TEST_VAL_HIGH)) && (retry < 10))
+		while(((ADC_TEST_VAL_LOW > adcVal) || (adcVal > ADC_TEST_VAL_HIGH)) && (retry < 100))
 		{
 			delay(2);
 			adcVal = readReg16(dev, addr);
@@ -1820,6 +1821,7 @@ static void doTest(int argc, char* argv[])
 			if(i == 7)
 			{
 				dacFault++;
+				printf("DAC Retry %d\n", retry);
 			}
 			
 			if(file)
