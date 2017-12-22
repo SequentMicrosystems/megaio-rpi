@@ -86,6 +86,21 @@ def get_adc(stack, channel):
 	outData = (0xff00 & (aux << 8)) + ( 0xff & (aux >> 8))
 	return outData
 	
+def get_adc_volt(stack, channel):
+	outData = 0
+	aux = 0
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	if channel < 1 or channel > 8:
+		raise ValueError('Invalid channel number')
+		return
+	aux = bus.read_word_data(DEVICE_ADDRESS + stack, ADC_VAL_MEM_ADD + 2*(channel - 1))
+	outData = (0xff00 & (aux << 8)) + ( 0xff & (aux >> 8))
+	outData = 3.3 * outData / 4096;
+	return outData
+	
 def set_dac(stack, value):
 	outData = 0
 	bus = smbus.SMBus(1)
@@ -99,6 +114,21 @@ def set_dac(stack, value):
 	bus.write_word_data(DEVICE_ADDRESS + stack, DAC_VAL_H_MEM_ADD, outData)
 	return
 	
+def set_dac_volt(stack, value):
+	outData = 0
+	ival = 0;
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	if value < 0 or value > 3.3:
+		raise ValueError('Invalid DAC value')
+		return
+	ival = int(4095 * value/3.3);
+	outData = (0xff00 & (ival << 8)) + ( 0xff & (ival >> 8))
+	bus.write_word_data(DEVICE_ADDRESS + stack, DAC_VAL_H_MEM_ADD, outData)
+	return
+	
 def get_dac(stack):
 	outData = 0
 	aux = 0
@@ -109,3 +139,83 @@ def get_dac(stack):
 	aux = bus.read_word_data(DEVICE_ADDRESS + stack, DAC_VAL_H_MEM_ADD)
 	outData = (0xff00 & (aux << 8)) + ( 0xff & (aux >> 8))
 	return outData	
+	
+def get_opto_in(stack):
+	outData = 0
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	outData = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IN_MEM_ADD)
+	return outData
+	
+def set_io_pin_dir(stack, pin, dir):
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	if pin < 1 or pin > 6:
+		raise ValueError('Invalid IO pin number')
+		return
+	if dir != 0 and dir != 1:
+		raise ValueError('Invalid IO direction')
+		return
+	inData = bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_DIR_MEM_ADD)
+	aux = 1 << (pin-1);
+	if dir == 1:
+		inData = inData | aux
+	else:
+		inData = inData & (~aux)
+	bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_DIR_MEM_ADD, inData)
+	return
+	
+def get_io_val(stack):
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	outVal = bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_VAL_MEM_ADD)
+	return outVal
+	
+def set_io_pin(stack, pin, val):
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	if pin < 1 or pin > 6:
+		raise ValueError('Invalid IO pin number')
+		return
+	if val != 0 and val != 1:
+		raise ValueError('Invalid IO output level')
+		return
+	if val == 1:	
+		bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_SET_MEM_ADD, val)	
+	else:
+		bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_CLR_MEM_ADD, val)	
+	return
+
+def set_oc_pin(stack, pin, val):
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	if pin < 1 or pin > 4:
+		raise ValueError('Invalid OC channel number')
+		return
+	if val != 0 and val != 1:
+		raise ValueError('Invalid OC value')
+		return
+	if val == 1:	
+		bus.write_byte_data(DEVICE_ADDRESS + stack, OC_OUT_SET_MEM_ADD, val)	
+	else:
+		bus.write_byte_data(DEVICE_ADDRESS + stack, OC_OUT_CLR_MEM_ADD, val)	
+	return
+	
+def get_oc_val(stack):
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	outVal = bus.read_byte_data(DEVICE_ADDRESS + stack, OC_OUT_VAL_MEM_ADD)
+	return outVal
+	
