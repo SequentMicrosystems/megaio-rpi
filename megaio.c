@@ -1627,7 +1627,7 @@ static void doTest(int argc, char* argv[])
 		 "Open collector ch 4, opto ch 8 & 2 test"
 	 };
 	 u8 optoTab[4] = {0x24, 0x18, 0x41, 0x82};
-	 
+	 u8 pass = 1;
 	 u8 ocCh, opto;
 	 int ioRead = 0;
 	 
@@ -1777,6 +1777,7 @@ static void doTest(int argc, char* argv[])
 				{
 					printf("ADC ch 7 / DAC test ................... FAIL!: %d\n", adcVal);
 					printf("DAC Retry %d\n", retry);
+					pass = 0;
 				}
 				dacFault++;
 				continue;
@@ -1831,6 +1832,7 @@ static void doTest(int argc, char* argv[])
 			else
 			{
 				printf("ADC ch %d test ......................... FAIL! val= %d\n", (int)i, (int)adcVal);
+				pass = 0;
 			}
 		}		
 	}
@@ -1854,6 +1856,7 @@ static void doTest(int argc, char* argv[])
 		else
 		{
 			printf( "DAC test .............................. FAIL!\n");
+			pass = 0;
 		}
 	}
 	//*****************Open collector out/ Optocupled in test****************************/
@@ -1896,6 +1899,7 @@ static void doTest(int argc, char* argv[])
 			else
 			{
 				printf("%s FAIL!\n", optTest[ocCh -1]);
+				pass = 0;
 			}
 			//printf("ch %d Fail\n", (int)ocCh);
 		}
@@ -1934,6 +1938,7 @@ static void doTest(int argc, char* argv[])
 		else
 		{
 			printf("IO test ............................... FAIL!: %d\n", ioRead);
+			pass = 0;
 		}
 	}
 	else
@@ -1960,6 +1965,7 @@ static void doTest(int argc, char* argv[])
 			else
 			{
 				printf("IO ch 1/3 test ........................ FAIL!: %d\n", ioRead);
+				pass = 0;
 			}
 		}
 		else
@@ -1998,6 +2004,7 @@ static void doTest(int argc, char* argv[])
 			else
 			{
 				printf("IO ch 2/5 test ........................ FAIL!: %d\n", ioRead);
+				pass = 0;
 			}
 		}
 		else
@@ -2037,6 +2044,7 @@ static void doTest(int argc, char* argv[])
 			else
 			{
 				printf("IO ch 4/6 test ........................ FAIL!: %d\n", ioRead);
+				pass = 0;
 			}
 		}
 		else
@@ -2061,6 +2069,24 @@ static void doTest(int argc, char* argv[])
 	if(file)
 	{
 		fclose(file);
+	}
+	if(pass == 1)
+	{
+		printf("╔═══╦═══╦═══╦═══╗\n");
+		printf("║╔═╗║╔═╗║╔═╗║╔═╗║\n");
+		printf("║╚═╝║║─║║╚══╣╚══╗\n");
+		printf("║╔══╣╚═╝╠══╗╠══╗║\n");
+		printf("║║──║╔═╗║╚═╝║╚═╝║\n");
+		printf("╚╝──╚╝─╚╩═══╩═══╝\n");
+	}
+	else
+	{
+		printf("╔═══╗╔═══╗╔══╗╔╗───╔╗\n");
+		printf("║╔══╝║╔═╗║╚╣╠╝║║───║║\n");
+		printf("║╚══╗║║─║║─║║─║║───║║\n");
+		printf("║╔══╝║╚═╝║─║║─║║─╔╗╚╝\n");
+		printf("║║───║╔═╗║╔╣╠╗║╚═╝║╔╗\n");
+		printf("╚╝───╚╝─╚╝╚══╝╚═══╝╚╝\n");
 	}
 }
 
