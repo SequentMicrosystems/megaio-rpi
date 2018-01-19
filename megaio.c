@@ -2070,6 +2070,7 @@ static void doTest(int argc, char* argv[])
 	{
 		fclose(file);
 	}
+	/*
 	if(pass == 1)
 	{
 		printf("╔═══╦═══╦═══╦═══╗\n");
@@ -2088,6 +2089,7 @@ static void doTest(int argc, char* argv[])
 		printf("║║───║╔═╗║╔╣╠╗║╚═╝║╔╗\n");
 		printf("╚╝───╚╝─╚╝╚══╝╚═══╝╚╝\n");
 	}
+	*/
 }
 
 /*
