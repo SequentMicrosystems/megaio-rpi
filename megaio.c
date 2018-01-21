@@ -104,7 +104,7 @@ PI_THREAD (waitForKey)
 
 	(void)piHiPri (10) ;	// Set this thread to be high priority
 	resp = getchar();
-	if(resp == 'y')
+	if((resp == 'y') || (resp == 'Y'))
 		respI = YES;
 	
     piLock (COUNT_KEY) ;
@@ -1740,6 +1740,7 @@ static void doTest(int argc, char* argv[])
 			else
 			{
 				printf("Relay Test ............................ FAIL!\n");
+        pass = 0;
 			}
 		}
 		
@@ -2070,26 +2071,26 @@ static void doTest(int argc, char* argv[])
 	{
 		fclose(file);
 	}
-	/*
-	if(pass == 1)
+	if(pass == 0)
 	{
-		printf("╔═══╦═══╦═══╦═══╗\n");
-		printf("║╔═╗║╔═╗║╔═╗║╔═╗║\n");
-		printf("║╚═╝║║─║║╚══╣╚══╗\n");
-		printf("║╔══╣╚═╝╠══╗╠══╗║\n");
-		printf("║║──║╔═╗║╚═╝║╚═╝║\n");
-		printf("╚╝──╚╝─╚╩═══╩═══╝\n");
+     printf("    ########    ###    #### ##       #### \n");
+     printf("    ##         ## ##    ##  ##       #### \n");
+     printf("    ##        ##   ##   ##  ##       #### \n");
+     printf("    ######   ##     ##  ##  ##        ##  \n");
+     printf("    ##       #########  ##  ##            \n");
+     printf("    ##       ##     ##  ##  ##       #### \n");
+     printf("    ##       ##     ## #### ######## #### \n");
 	}
 	else
 	{
-		printf("╔═══╗╔═══╗╔══╗╔╗───╔╗\n");
-		printf("║╔══╝║╔═╗║╚╣╠╝║║───║║\n");
-		printf("║╚══╗║║─║║─║║─║║───║║\n");
-		printf("║╔══╝║╚═╝║─║║─║║─╔╗╚╝\n");
-		printf("║║───║╔═╗║╔╣╠╗║╚═╝║╔╗\n");
-		printf("╚╝───╚╝─╚╝╚══╝╚═══╝╚╝\n");
+     printf("    ########     ###     ######   ######  \n");
+     printf("    ##     ##   ## ##   ##    ## ##    ## \n");
+     printf("    ##     ##  ##   ##  ##       ##       \n");
+     printf("    ########  ##     ##  ######   ######  \n");
+     printf("    ##        #########       ##       ## \n");
+     printf("    ##        ##     ## ##    ## ##    ## \n");
+     printf("    ##        ##     ##  ######   ######  \n");
 	}
-	*/
 }
 
 /*
