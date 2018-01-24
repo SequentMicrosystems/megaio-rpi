@@ -1776,8 +1776,8 @@ static void doTest(int argc, char* argv[])
 				}
 				else
 				{
-					printf("ADC ch 7 / DAC test ................... FAIL!: %d\n", adcVal);
-					printf("DAC Retry %d\n", retry);
+					printf("ADC ch 7 / DAC test ................... FAIL! val = %d", adcVal);
+					printf(" DAC Retry %d\n", retry);
 					pass = 0;
 				}
 				dacFault++;
@@ -1823,7 +1823,7 @@ static void doTest(int argc, char* argv[])
 			if(i == 7)
 			{
 				dacFault++;
-				printf("DAC Retry %d\n", retry);
+				printf(" DAC Retry %d\n", retry);
 			}
 			
 			if(file)
@@ -1856,7 +1856,7 @@ static void doTest(int argc, char* argv[])
 		}
 		else
 		{
-			printf( "DAC test .............................. FAIL!\n");
+			printf( "DAC test .............................. FAIL Check U4!\n");
 			pass = 0;
 		}
 	}
@@ -1908,21 +1908,21 @@ static void doTest(int argc, char* argv[])
 			}
 			else
 			{
-				printf("%s FAIL!\n", optTest[ocCh -1]);
+				printf("%s FAIL ", optTest[ocCh -1]);
 				pass = 0;
-			}
-      
-			if(opto == 0)
-      {
-        printf("Check D10, D11, Q%d !!!\n", Q);
-      }
-      else if(opto < 0x10)
-      {
-        printf("Check D11 !!!\n");
-      }
-      else if(opto > 0x0f)
-      {
-        printf("Check D10 !!!\n");
+        
+  			if(opto == 0)
+        {
+          printf("Check D10, D11, Q%d!\n", Q);
+        }
+        else if(opto < 0x10)
+        {
+          printf("Check D11!\n");
+        }
+        else if(opto > 0x0f)
+        {
+          printf("Check D10!\n");
+        }
       } 
 		}
 		
@@ -1986,7 +1986,7 @@ static void doTest(int argc, char* argv[])
 			}
 			else
 			{
-				printf("IO ch 1/3 test ........................ FAIL!: %d. Check R46, R44!\n", ioRead);
+				printf("IO ch 1/3 test ........................ FAIL: %d. Check R46, R44!\n", ioRead);
 				pass = 0;
 			}
 		}
@@ -2025,7 +2025,7 @@ static void doTest(int argc, char* argv[])
 			}
 			else
 			{
-				printf("IO ch 2/5 test ........................ FAIL!: %d. Check R45, R42!\n", ioRead);
+				printf("IO ch 2/5 test ........................ FAIL: %d. Check R45, R42!\n", ioRead);
 				pass = 0;
 			}
 		}
@@ -2065,7 +2065,7 @@ static void doTest(int argc, char* argv[])
 			}
 			else
 			{
-				printf("IO ch 4/6 test ........................ FAIL!: %d. Check R43, R41!\n", ioRead);
+				printf("IO ch 4/6 test ........................ FAIL: %d. Check R43, R41!\n", ioRead);
 				pass = 0;
 			}
 		}
