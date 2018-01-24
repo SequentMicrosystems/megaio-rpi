@@ -69,10 +69,10 @@ char *usage = "Usage:	megaio -h <command>\n"
 		"         megaio <id> ioitread\n"
 		"         megaio <id> test\n"
 		"         megaio <id> atest <chNr>\n"
-		"Where: <id> = Board level id = 0..4\n"
+		"Where: <id> = Board level id = 0..3\n"
 		"Type megaio -h <command> for more help";// No trailing newline needed here.
 			  
-char *warranty ="	       Copyright (c) 2016-2017 Sequent Microsystems\n"
+char *warranty ="	       Copyright (c) 2016-2018 Sequent Microsystems\n"
 				"                                                             \n"
 				"		This program is free software; you can redistribute it and/or modify\n"
 				"		it under the terms of the GNU Leser General Public License as published\n"
@@ -1544,7 +1544,7 @@ void doBoard(int argc)
 
 static void doVersion(void)
 {
-	printf("MegaIO v%d.%d.%d Copyright (c) 2016 - 2017 Sequent Microsystems\n", VERSION_BASE, VERSION_MAJOR, VERSION_MINOR);
+	printf("MegaIO v%d.%d.%d Copyright (c) 2016 - 2018 Sequent Microsystems\n", VERSION_BASE, VERSION_MAJOR, VERSION_MINOR);
 	printf("\nThis is free software with ABSOLUTELY NO WARRANTY.\n");
 	printf("For details type: megaio -warranty\n");
 
@@ -1626,6 +1626,7 @@ static void doTest(int argc, char* argv[])
 		 "Open collector ch 3, opto ch 7 & 1 test",
 		 "Open collector ch 4, opto ch 8 & 2 test"
 	 };
+   
 	 u8 optoTab[4] = {0x24, 0x18, 0x41, 0x82};
 	 u8 pass = 1;
 	 u8 ocCh, opto;
@@ -1645,7 +1646,6 @@ static void doTest(int argc, char* argv[])
 			printf( "Fail to open result file\n");
 			//return -1;
 		}
-		//fseek(file, SEEK_SET);
 	}
 	
 //relay test****************************	
@@ -1686,7 +1686,7 @@ static void doTest(int argc, char* argv[])
 				}		
 				delay(150);
 			}
-			//delay(10);
+		
 		
 			for (i = 0; i < 8; i++)
 			{	
@@ -1861,13 +1861,22 @@ static void doTest(int argc, char* argv[])
 		}
 	}
 	//*****************Open collector out/ Optocupled in test****************************/
-	
+	u8 Q = 2;
 	for(ocCh = 1; ocCh < 5; ocCh++)
 	{
 #ifdef TEST_RESET
 	printf("hit a key\n");
 	getchar();
 #endif
+    if(ocCh > 2)
+    {
+      Q = 1;
+    }
+    else
+    {
+      Q = 2;
+    }
+      
 		retry = 0;
 		opto = optoTab[ocCh - 1] + 1;
 		while((opto != optoTab[ocCh - 1]) && (retry < 10))
@@ -1902,7 +1911,19 @@ static void doTest(int argc, char* argv[])
 				printf("%s FAIL!\n", optTest[ocCh -1]);
 				pass = 0;
 			}
-			//printf("ch %d Fail\n", (int)ocCh);
+      
+			if(opto == 0)
+      {
+        printf("Check D10, D11, Q%d !!!\n", Q);
+      }
+      else if(opto < 0x10)
+      {
+        printf("Check D11 !!!\n");
+      }
+      else if(opto > 0x0f)
+      {
+        printf("Check D10 !!!\n");
+      } 
 		}
 		
 		
@@ -1965,7 +1986,7 @@ static void doTest(int argc, char* argv[])
 			}
 			else
 			{
-				printf("IO ch 1/3 test ........................ FAIL!: %d\n", ioRead);
+				printf("IO ch 1/3 test ........................ FAIL!: %d. Check R46, R44!\n", ioRead);
 				pass = 0;
 			}
 		}
@@ -2004,7 +2025,7 @@ static void doTest(int argc, char* argv[])
 			}
 			else
 			{
-				printf("IO ch 2/5 test ........................ FAIL!: %d\n", ioRead);
+				printf("IO ch 2/5 test ........................ FAIL!: %d. Check R45, R42!\n", ioRead);
 				pass = 0;
 			}
 		}
@@ -2044,7 +2065,7 @@ static void doTest(int argc, char* argv[])
 			}
 			else
 			{
-				printf("IO ch 4/6 test ........................ FAIL!: %d\n", ioRead);
+				printf("IO ch 4/6 test ........................ FAIL!: %d. Check R43, R41!\n", ioRead);
 				pass = 0;
 			}
 		}
