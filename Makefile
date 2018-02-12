@@ -11,7 +11,7 @@ CFLAGS	= $(DEBUG) -Wall -Wextra $(INCLUDE) -Winline -pipe
 LDFLAGS	= -L$(DESTDIR)$(PREFIX)/lib
 LIBS    = -lwiringPi -lwiringPiDev -lpthread -lrt -lm -lcrypt
 
-SRC	=	megaio.c
+SRC	=	megaio.c comm.c
 
 OBJ	=	$(SRC:.c=.o)
 

@@ -9,35 +9,31 @@
  ***********************************************************************
  */
 #include <stdio.h>
-#include <termios.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#include <wiringPi.h>
-#include <wiringPiI2C.h>
 #include <math.h>
 #include "megaio.h"
 
-#define	COUNT_KEY	0
-#define YES		1
-#define NO		2
 #define ADC_TEST_VAL_LOW	2850 	
-#define ADC_TEST_VAL_HIGH	3300	
+#define ADC_TEST_VAL_HIGH	3300
+
+#define ADC_TEST_SAMPLES_NR	500
 
 #define DEBUG_LED
 //#define DEBUG_TEST 1
 //#define TEST_RESET 1
 
-int gHwAdd = 0x31;
-int gLed1HwAdd = 0x20;
-int gLed2HwAdd = 0x21;
+#define VERSION_BASE	(int)2
+#define VERSION_MAJOR	(int)2
+#define VERSION_MINOR	(int)1
+
+int gHwAdd = MEGAIO_HW_I2C_BASE_ADD;
+
 
 
 char *usage = "Usage:	megaio -h <command>\n"
@@ -46,29 +42,33 @@ char *usage = "Usage:	megaio -h <command>\n"
 		"         megaio -lw <val>\n"
 		"         megaio -lw <lednr> <val>\n"
 		"         megaio -warranty\n"
+		"         megaio -connector\n"
 		"         megaio <id> board\n"
-	      	"         megaio <id> rwrite <channel> <on/off>\n"
-              	"         megaio <id> rread <channel>\n" 
-              	"         megaio <id> rread\n"	
-              	"         megaio <id> aread <channel>\n"
-              	"         megaio <id> awrite <value>\n"
-              	"         megaio <id> optread <channel>\n"
-              	"         megaio <id> optread\n"
-				"         megaio <id> ocread\n"
-				"         megaio <id> ocwrite <ch> <on/off; 1/0>\n"
-				"         megaio <id> ocwrite <val>\n"
-              	"         megaio <id> optirqset <channel> <rising/falling/change/none>\n"
-			"         megaio <id> optitRead\n"
-              	"         megaio <id> iodwrite <channel> <in/out>\n"
-              	"         megaio <id> iodread <channel>\n"
-              	"         megaio <id> iodread\n" 
-              	"         megaio <id> iowrite <channel> <on/off>\n"
-              	"         megaio <id> ioread <channel>\n"
-              	"         megaio <id> ioread\n"
-              	"         megaio <id> ioirqset <channel> <rising/falling/change/none>\n"
+	    "         megaio <id> rwrite <channel> <on/off>\n"
+        "         megaio <id> rread <channel>\n" 
+        "         megaio <id> rread\n"	
+        "         megaio <id> aread <channel>\n"
+        "         megaio <id> awrite <value>\n"
+        "         megaio <id> optread <channel>\n"
+        "         megaio <id> optread\n"
+		"         megaio <id> ocread\n"
+		"         megaio <id> ocwrite <ch> <on/off; 1/0>\n"
+		"         megaio <id> ocwrite <val>\n"
+        "         megaio <id> optirqset <channel> <rising/falling/change/none>\n"
+		"         megaio <id> optitRead\n"
+        "         megaio <id> iodwrite <channel> <in/out>\n"
+        "         megaio <id> iodread <channel>\n"
+        "         megaio <id> iodread\n" 
+        "         megaio <id> iowrite <channel> <on/off>\n"
+        "         megaio <id> ioread <channel>\n"
+        "         megaio <id> ioread\n"
+        "         megaio <id> ioirqset <channel> <rising/falling/change/none>\n"
 		"         megaio <id> ioitread\n"
 		"         megaio <id> test\n"
 		"         megaio <id> atest <chNr>\n"
+		"         megaio <id> test-opto-oc <optoCh> <ocCh>\n"
+		"         megaio <id> test-io <ch1> <ch2>\n"
+		"         megaio <id> test-dac-adc <adcCh>\n"
 		"Where: <id> = Board level id = 0..3\n"
 		"Type megaio -h <command> for more help";// No trailing newline needed here.
 			  
@@ -86,54 +86,52 @@ char *warranty ="	       Copyright (c) 2016-2018 Sequent Microsystems\n"
 				"			\n"
 				"		You should have received a copy of the GNU Lesser General Public License\n"
 				"		along with this program. If not, see <http://www.gnu.org/licenses/>.";
+				
+
+char *cnv2 = 	" SIGNAL  CONNECTOR    SIGNAL\n"
+				"           |---|\n"
+				" 3.3V  -- 1|O O| 2--  +5V\n"
+				" OPTO1 -- 3|O O| 4--  5VEXT\n"
+				" OPTO2 -- 5|O O| 6--  GND\n"
+				" DAC   -- 7|O O| 8--  OPTO3\n"
+				" GND   -- 9|O O|10--  OPTO4\n"
+				" ADC7  --11|O O|12--  ADC8\n"
+				" ADC6  --13|O O|14--  GND\n"
+				" ADC4  --15|O O|16--  ADC5\n"
+				" 3.3V  --17|O O|18--  ADC3\n"
+				" ADC2  --19|O O|20--  GND\n"
+				" ADC1  --21|O O|22--  IO6\n"
+				" IO5   --23|O O|24--  IO4\n"
+				" GND   --25|O O|26--  IO3\n"
+				" IO2   --27|O O|28--  IO1\n"
+				" OC4   --29|O O|30--  GND\n"
+				" OC3   --31|O O|32--  OC2\n"
+				" OC1   --33|O O|34--  GND\n"
+				" N/C   --35|O O|36--  OPTO5\n"
+				" OPTO6 --37|O O|38--  OPTO7\n"
+				" GND   --39|O O|40--  OPTO8\n"
+				"           |---|\n";
+			
+				
+char *failStr = "    ########    ###    #### ##       #### \n"
+				"    ##         ## ##    ##  ##       #### \n"
+				"    ##        ##   ##   ##  ##       #### \n"
+				"    ######   ##     ##  ##  ##        ##  \n"
+				"    ##       #########  ##  ##            \n"
+				"    ##       ##     ##  ##  ##       #### \n"
+				"    ##       ##     ## #### ######## #### \n";
+				
+char *passStr = "    ########     ###     ######   ######  \n"
+				"    ##     ##   ## ##   ##    ## ##    ## \n"
+				"    ##     ##  ##   ##  ##       ##       \n"
+				"    ########  ##     ##  ######   ######  \n"
+				"    ##        #########       ##       ## \n"
+				"    ##        ##     ## ##    ## ##    ## \n"
+				"    ##        ##     ##  ######   ######  \n";
 		  
-static volatile int globalResponse = 0 ;
-
-PI_THREAD (waitForKey)
-{
- char resp;
- int respI = NO;
-
- 
-	struct termios info;
-	tcgetattr(0, &info);          /* get current terminal attirbutes; 0 is the file descriptor for stdin */
-	info.c_lflag &= ~ICANON;      /* disable canonical mode */
-	info.c_cc[VMIN] = 1;          /* wait until at least one keystroke available */
-	info.c_cc[VTIME] = 0;         /* no timeout */
-	tcsetattr(0, TCSANOW, &info); /* set i */
-
-	(void)piHiPri (10) ;	// Set this thread to be high priority
-	resp = getchar();
-	if((resp == 'y') || (resp == 'Y'))
-		respI = YES;
-	
-    piLock (COUNT_KEY) ;
-	globalResponse = respI ;
-    piUnlock (COUNT_KEY) ;
-	
-	info.c_lflag |= ICANON;      /* disable canonical mode */
-	info.c_cc[VMIN] = 0;          /* wait until at least one keystroke available */
-	info.c_cc[VTIME] = 0;         /* no timeout */
-	tcsetattr(0, TCSANOW, &info); /* set i */
-	printf("\n");
-	return &waitForKey;
-}
-
-int readReg16(int dev, int add)
-{
-	int val, ret;
-	
-	val = wiringPiI2CReadReg16(dev, add);
-	ret = 0xff & (val >> 8);
-	ret+= 0xff00 & (val << 8);
-	//delay(1); //megaio <id> optirq <channel> <rising/falling/change/none>\n"
-
-	return ret;
-}
-
 void printbits(int v) 
 {
-	int i; // for C89 compatability
+	int i; // for C89 compatibility
 	
 	for(i = 17; i >= 0; i--) putchar('0' + ((v >> i) & 1));
 }
@@ -142,13 +140,13 @@ int readReg24(int dev, int add)
 {
 	int val, aux8;
 	
-	aux8 = wiringPiI2CReadReg8(dev, add + 2);
+	aux8 = readReg8(dev, add + 2);
 	val = aux8;
 	/*val = 0xffff00 & (val << 8);*/
-	aux8 = wiringPiI2CReadReg8(dev, add + 1);
+	aux8 = readReg8(dev, add + 1);
 	val += 0xff00 & (aux8 << 8);
 	
-	aux8 = wiringPiI2CReadReg8(dev, add );
+	aux8 = readReg8(dev, add );
 	val += 0xff0000 & (aux8 << 16);
 #ifdef DEBUG_I	
 	printbits(val);
@@ -158,137 +156,84 @@ int readReg24(int dev, int add)
 	return val;
 }
 
-int writeReg16(int dev, int add, int val)
-{
-	int wVal;
-	
-	wVal = 0xff & (val >> 8);
-	wVal += 0xff00 & (val << 8);
-	wiringPiI2CWriteReg16(dev,add, wVal);
-	delay(1);
-	return 0;
-}
+
 
 int writeReg24(int dev, int add, int val)
 {
 	int wVal;//, aux8;
 	
-	
-	//aux8 = wiringPiI2CReadReg8(dev, add );
 	wVal = 0xff & (val >> 8);
-	wiringPiI2CWriteReg8(dev,add+1, wVal);
+	writeReg8(dev,add+1, wVal);
 	
-	//aux8 = wiringPiI2CReadReg8(dev, add );
 	wVal = 0xff & ( val >> 16);
-	wiringPiI2CWriteReg8(dev,add, wVal);
+	writeReg8(dev,add, wVal);
 	
-	//aux8 = wiringPiI2CReadReg8(dev, add );
 	wVal = 0xff & val;
-	wiringPiI2CWriteReg8(dev,add+2, wVal);
+	writeReg8(dev,add+2, wVal);
 	
 	return 0;
 }
 
-static int doBoardInit(int hwAdd)
+// set ON/OFF specify relay channel
+int relayChSet(int dev, u8 channel, OutStateEnumType state)
 {
-	int dev, bV = -1;
-	dev = wiringPiI2CSetup (hwAdd);
-	if(dev == -1)
+	int resp;
+	
+	if((channel < CHANNEL_NR_MIN) || (channel > RELAY_CH_NR_MAX))
 	{
-		return -1;
+		printf("Invalid relay nr!\n");
+		return ERROR;
 	}
-	bV = wiringPiI2CReadReg8 (dev,REVISION_HW_MAJOR_MEM_ADD);
-	if(bV == -1)
+	switch(state)
 	{
-		return -1;
+	case OFF:
+		resp = writeReg8(dev,RELAY_OFF_MEM_ADD, channel);
+		break;
+	case ON:
+		resp = writeReg8(dev,RELAY_ON_MEM_ADD, channel);
+		break;
+		
+	default:
+		printf("Invalid relay state!\n");
+		return ERROR;
+		break;
 	}
-	return dev;
+	if(0 < resp)
+	{
+		return OK;
+	}
+	return FAIL;
 }
 
-/*
-* getLedVal
-* Get the value of leds 
-* arg: chip 0 - 1
-* ret: 0x0000 - 0xffff - success; -1 - fail 
-*/
-static int getLedVal(int chip)
-{
-	int dev = -1;
-	int ret = 0;
-	u16 rVal = 0;
-	
-	if((chip < 0) || (chip > 1))
-	{
-		return -1;
-	}
-	dev = wiringPiI2CSetup(gLed1HwAdd + chip); 
-	if(dev <= 0)
-	{
-		return -1;
-	}
-	ret  = wiringPiI2CReadReg16(dev, 0x02);
-	if(ret < 0)
-	{
-		return -1;
-	}
-	rVal = 0xff00 & (ret << 4);
-	rVal += 0x01 & (ret >> 3);
-	rVal += 0x02 & (ret >> 1);
-	rVal += 0x04 & (ret << 1);
-	rVal += 0x08 & (ret << 3);
-	rVal += 0x10 & (ret >> 11);
-	rVal += 0x20 & (ret >> 9);
-	rVal += 0x40 & (ret >> 7);
-	rVal += 0x80 & (ret >> 5);
-	
-	return rVal;
-}
-	
 
-/*
-* setLedVal
-* Get the value of leds 
-* arg: chip 0 - 1
-* arg: val 0x0000 - 0xffff 
-* ret: 0 - success; -1 - fail 
-*/
-static int setLedVal(int chip, int val)
+int adcGet(int dev, int ch)
 {
-	int dev = -1;
-	int ret = 0;
-	u16 wVal = 0;
+	int resp, add;
 	
-	if((chip < 0) || (chip > 1))
+	add = ADC_VAL_MEM_ADD + 2* (ch-1);
+	resp = readReg16(dev, add);
+	return resp;
+}
+
+int dacSet(int dev, int val)
+{
+	int retry, inVal;
+	
+	retry = RETRY_TIMES;
+	inVal = val +1;
+	while((retry > 0) && (inVal != val))
 	{
-		return -1;
+		writeReg16(dev, DAC_VAL_H_MEM_ADD, val);
+		inVal = readReg16(dev, DAC_VAL_H_MEM_ADD);
+		retry --;
 	}
-	if((val < 0) || (val > 0xffff))
+	if(retry == 0)
 	{
-		return -1;
+		return FAIL;
 	}
-	
-	dev = wiringPiI2CSetup(gLed1HwAdd + chip); 
-	if(dev <= 0)
-	{
-		return -1;
-	}
-	wVal = 0x0ff0 & ( val >> 4);
-	wVal += 0x1000 & (val << 5);
-	wVal += 0x2000 & (val << 7);
-	wVal += 0x4000 & (val << 9);
-	wVal += 0x8000 & (val << 11);
-	wVal += 0x0001 & (val >> 3);
-	wVal += 0x0002 & (val >> 1);
-	wVal += 0x0004 & (val << 1);
-	wVal += 0x0008 & (val << 3);
-	
-	//wVal = 0xffff & val;
-	wiringPiI2CWriteReg16(dev, 0x06, 0x0000); // set all to output
-	wiringPiI2CWriteReg16(dev, 0x02, wVal);
-	
-	return ret;
-}	
-	
+	return OK;
+}
+
 static int doLed(int argc, char *argv[])
 {
 	unsigned int val;
@@ -383,53 +328,7 @@ static int doLed(int argc, char *argv[])
 	return -1;
 }
 	
-/*
-* wrLeds
-* Write leds as a corresponence of relay 
-*/
-#ifdef LED_RELAY_LINK
-static int wrLedsR(int stack, int val)
-{
-	int dev, addOut = 0x02;
-	if(stack < 2)
-	{
-		dev = wiringPiI2CSetup(gLed1HwAdd);
-	}
-	else if(stack < 4)
-	{
-		dev = wiringPiI2CSetup(gLed2HwAdd);
-	}
-	else
-	{
-#ifdef DEBUG_LED
-		printf("Invalid stack level\n");
-#endif
-		return -1;
-	}
-	if(val < 0 || val > 255)
-	{
-#ifdef DEBUG_LED
-		printf("Led value out of range\n");
-#endif
-		return -1;
-	}
-	if(dev == -1)
-	{
-#ifdef DEBUG_LED
-		printf("No led board detected\n");
-#endif
-		return -1;
-	}
-	
-	addOut += (stack & 0x01); 
-	
-	wiringPiI2CWriteReg16(dev, 0x06, 0x0000);
-	
-	wiringPiI2CWriteReg8(dev, addOut, 0xff & (~val));
-// todo: check write succesful
-	return 1;
-}
-#endif
+
 /*
 * doLedTest
 * Testing the led board
@@ -444,16 +343,16 @@ static void doLedTest(void)
 		val += 1 << led;
 		setLedVal(1, 0xffff & ~val);
 		setLedVal(0, 0xffff & ~(val >> 16));
-		delay(100);
+		busyWait(100);
 	}
-	delay(250);
+	busyWait(250);
 	val = 0;
 	for(led = 0; led < 32; led++)
 	{
 		val += 1 << led;
 		setLedVal(1, 0xffff & val);
 		setLedVal(0, 0xffff & (val >> 16));
-		delay(100);
+		busyWait(100);
 	}
 }
 
@@ -475,8 +374,7 @@ static void doRelayWrite(int argc, char *argv[])
 
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
 	if(argc == 5)
@@ -489,36 +387,23 @@ static void doRelayWrite(int argc, char *argv[])
 		}
 
 		/**/ if ((strcasecmp (argv [4], "up") == 0) || (strcasecmp (argv [4], "on") == 0))
-		val = 1 ;
+			val = ON ;
 		else if ((strcasecmp (argv [4], "down") == 0) || (strcasecmp (argv [4], "off") == 0))
-			val = 0 ;
+			val = OFF ;
 		else
 		{
 			val = atoi (argv [4]) ;
 		}
-		if (val == 0)
-		{
-			wiringPiI2CWriteReg8 (dev,RELAY_OFF_MEM_ADD, pin);
-		}
-		else
-		{
-			wiringPiI2CWriteReg8 (dev,RELAY_ON_MEM_ADD, pin);
-		}
-		valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+		relayChSet(dev, pin, val);
+		valR = readReg8(dev, RELAY_MEM_ADD);
+		
 		valRmask = 0x01 & (valR >> (pin - 1));
 		retry = RETRY_TIMES;
 
 		while((retry > 0) && (valRmask != val))
 		{
-			if (val == 0)
-			{
-				wiringPiI2CWriteReg8 (dev,RELAY_OFF_MEM_ADD, pin);
-			}
-			else
-			{
-				wiringPiI2CWriteReg8 (dev,RELAY_ON_MEM_ADD, pin);
-			}
-			valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+			relayChSet(dev, pin, val);
+			valR = readReg8(dev, RELAY_MEM_ADD);
 			valRmask = 0x01 & (valR >> (pin - 1));
 			retry--;
 		}
@@ -543,10 +428,11 @@ static void doRelayWrite(int argc, char *argv[])
 			exit(1);
 		}
 		retry = RETRY_TIMES;
+		valR = -1;
 		while((retry > 0) && (valR != val))
-		{
-			wiringPiI2CWriteReg8 (dev,RELAY_MEM_ADD, val);
-			valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+		{			
+			writeReg8(dev, RELAY_MEM_ADD, val);
+			valR = readReg8(dev, RELAY_MEM_ADD);
 		}
 		if(retry == 0)
 		{
@@ -571,8 +457,7 @@ static void doRelayRead(int argc, char *argv[])
 
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
 
@@ -584,8 +469,13 @@ static void doRelayRead(int argc, char *argv[])
 			printf( "Relay number value out of range\n");
 			exit(1);
 		}
+		val = readReg8(dev, RELAY_MEM_ADD);
+		if(val < 0)
+		{
+			printf("Fail to read\n");
+			exit(1);
+		}
 
-		val = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
 		val = val & (1 << (pin-1));
 		if(val != 0)
 		{
@@ -598,7 +488,12 @@ static void doRelayRead(int argc, char *argv[])
 	}
 	else if(argc == 3)
 	{
-		val = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+		val = readReg8(dev, RELAY_MEM_ADD);
+		if(val < 0)
+		{
+			printf("Fail to read\n");
+			exit(1);
+		}
 		printf("%d\n", val);
 	}
 	else
@@ -616,15 +511,13 @@ static void doRelayRead(int argc, char *argv[])
 */
 static void doAnalogRead(int argc, char *argv[])
 {
-	int pin, dev, addr, rd;
+	int pin, dev, rd;
 
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
-
 	if (argc == 4)
 	{
 		pin = atoi (argv [3]) ;
@@ -633,9 +526,7 @@ static void doAnalogRead(int argc, char *argv[])
 			printf( "Analog channel number %d out of range\n", pin);
 			exit(1);
 		}
-
-		addr = ADC_VAL_MEM_ADD + 2* (pin-1);
-		rd = readReg16(dev, addr);
+		rd = adcGet(dev, pin);
 		printf("%d\n", rd);
 	}
 	else 
@@ -658,8 +549,7 @@ static void doAnalogWrite(int argc, char *argv[])
 	
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
 	if (argc != 4)
@@ -668,12 +558,17 @@ static void doAnalogWrite(int argc, char *argv[])
 		exit (1) ;
 	}
 	val = atoi(argv[3]);
-	if((val < 0) || (val > 4095))
+	if((val < ANALOG_VAL_MIN) || (val > ANALOG_VAL_MAX))
 	{
 		printf( "analog write value out of range\n");
 		exit(1);
 	}
-	writeReg16(dev, DAC_VAL_H_MEM_ADD, val);
+	
+	if(dacSet(dev, val) != OK)
+	{
+		printf("Fail to write DAC!\n");
+		exit(1);
+	}
 }
 
 
@@ -689,8 +584,7 @@ static void doOptoInRead(int argc, char *argv[])
 
 	dev = doBoardInit(gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
   
@@ -703,7 +597,7 @@ static void doOptoInRead(int argc, char *argv[])
 			exit(1);
 		}
 
-		val = wiringPiI2CReadReg8(dev, OPTO_IN_MEM_ADD);
+		val = readReg8(dev, OPTO_IN_MEM_ADD);
 		val = val & (1 << (pin-1));
 		if(val != 0)
 		{
@@ -716,7 +610,7 @@ static void doOptoInRead(int argc, char *argv[])
 	}
 	else if(argc == 3)
 	{
-		val = wiringPiI2CReadReg8(dev, OPTO_IN_MEM_ADD);
+		val = readReg8(dev, OPTO_IN_MEM_ADD);
 		printf("%d\n", val);
 	}
 	else
@@ -739,8 +633,7 @@ static void doOptoInIrq(int argc, char *argv[])
 
   dev = doBoardInit (gHwAdd);
   if(dev <= 0)
-  {
-    printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+  {     
     exit(1);
   }
   if (argc == 5)
@@ -754,29 +647,29 @@ static void doOptoInIrq(int argc, char *argv[])
 	  
 		/**/ if ((strcasecmp (argv [4], "rising") == 0) || (strcasecmp (argv [4], "high") == 0))
 		{
-			val = 1 ;
+			val = INT_RISING ;
 		}
 		else if ((strcasecmp (argv [4], "falling") == 0) || (strcasecmp (argv [4], "low") == 0))
 		{
-			val = 2 ;
+			val = INT_FALLING ;
 		}
-		else if ((strcasecmp (argv [4], "bowth") == 0) || (strcasecmp (argv [4], "change") == 0))
+		else if ((strcasecmp (argv [4], "both") == 0) || (strcasecmp (argv [4], "change") == 0))
 		{
-			val = 3 ;
+			val = INT_BOTH ;
 		}
 		else if ((strcasecmp (argv [4], "disable") == 0) || (strcasecmp (argv [4], "none") == 0))
 		{
-			val = 0;
+			val = INT_DISABLE;
 		}
 		else
 		{
 			val = atoi (argv [4]);
 		}
 	
-		rRising = wiringPiI2CReadReg8(dev,OPTO_IT_RISING_MEM_ADD );
-		delay(10);
-		rFalling = wiringPiI2CReadReg8(dev, OPTO_IT_FALLING_MEM_ADD);
-		delay(10);
+		rRising = readReg8(dev,OPTO_IT_RISING_MEM_ADD );
+		busyWait(10);
+		rFalling = readReg8(dev, OPTO_IT_FALLING_MEM_ADD);
+		busyWait(10);
 		switch(val)
 		{
 			case 0:
@@ -806,9 +699,9 @@ static void doOptoInIrq(int argc, char *argv[])
 		}
 		val = (0xff00 & (rFalling << 8)) + (0xff & rRising);
 		
-		wiringPiI2CWriteReg8(dev,OPTO_IT_RISING_MEM_ADD, rRising);
-		delay(10);
-		wiringPiI2CWriteReg8(dev,OPTO_IT_FALLING_MEM_ADD, rFalling);
+		writeReg8(dev,OPTO_IT_RISING_MEM_ADD, rRising);
+		busyWait(10);
+		writeReg8(dev,OPTO_IT_FALLING_MEM_ADD, rFalling);
 		
 	}
 	else
@@ -829,13 +722,12 @@ static void doOptoInIt(int argc)
 	
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
 	if (argc == 3)
 	{
-		val = wiringPiI2CReadReg8(dev,OPTO_IT_FLAGS_MEM_ADD );
+		val = readReg8(dev,OPTO_IT_FLAGS_MEM_ADD );
 		printf("%d\n", val);
 	}
 	else
@@ -856,7 +748,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+		 
 		exit(1);
 	}
 	if (argc == 5)
@@ -881,7 +773,7 @@ static void doOptoInIt(int argc)
 			val = atoi (argv [4]);
 		}
 	    
-		rVal = wiringPiI2CReadReg8(dev, GPIO_DIR_MEM_ADD);
+		rVal = readReg8(dev, GPIO_DIR_MEM_ADD);
 	
 		/**/ if (val == 0)
 		{
@@ -892,9 +784,7 @@ static void doOptoInIt(int argc)
 			rVal |= (1 << (pin - 1));
 		}
 		
-			wiringPiI2CWriteReg8(dev,GPIO_DIR_MEM_ADD, 0xff & rVal);
-	
-		/*writeReg24(dev, GPIO_DIR_MEM_ADD, rVal); */
+			writeReg8(dev,GPIO_DIR_MEM_ADD, 0xff & rVal);
 	}
 	else if(argc == 4)
 	{
@@ -928,8 +818,7 @@ static void doOptoInIt(int argc)
 	
 	dev = doBoardInit(gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{	 
 		exit(1);
 	}
 	rVal = 0x3f;
@@ -943,7 +832,7 @@ static void doOptoInIt(int argc)
 			exit(1);
 		}
 	    
-		rVal = wiringPiI2CReadReg8(dev, GPIO_DIR_MEM_ADD);
+		rVal = readReg8(dev, GPIO_DIR_MEM_ADD);
 		val = 1 << (pin -1);
 		val = val & rVal;
 		/**/ if (val == 0)
@@ -957,7 +846,7 @@ static void doOptoInIt(int argc)
 	}
 	else if(argc == 3)
 	{
-		rVal = wiringPiI2CReadReg8(dev, GPIO_DIR_MEM_ADD);
+		rVal = readReg8(dev, GPIO_DIR_MEM_ADD);
 		printf("%d\n", rVal);
 	}
 	else
@@ -979,8 +868,7 @@ static void doOptoInIt(int argc)
 	
 	dev = doBoardInit(gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
 	
@@ -1009,11 +897,11 @@ static void doOptoInIt(int argc)
 	
 		/**/ if (val == 0)
 		{
-			wiringPiI2CWriteReg8(dev, GPIO_CLR_MEM_ADD, pin);
+			writeReg8(dev, GPIO_CLR_MEM_ADD, pin);
 		}
 		else
 		{
-			wiringPiI2CWriteReg8(dev, GPIO_SET_MEM_ADD, pin);
+			writeReg8(dev, GPIO_SET_MEM_ADD, pin);
 		}
 
 	}
@@ -1052,7 +940,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit(gHwAdd);
 	if(dev <= 0)
 	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+		 
 		exit(1);
 	}
 	rVal = 0x3f;
@@ -1066,7 +954,7 @@ static void doOptoInIt(int argc)
 			exit(1);
 		}
 	    
-		rVal = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+		rVal = readReg8(dev, GPIO_VAL_MEM_ADD);
 		val = 1 << (pin -1);
 		val = val & rVal;
 		/**/ if (val == 0)
@@ -1080,7 +968,7 @@ static void doOptoInIt(int argc)
 	}
 	else if(argc == 3)
 	{
-		rVal = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+		rVal = readReg8(dev, GPIO_VAL_MEM_ADD);
 		printf("%d\n", rVal);
 	}
 	else
@@ -1102,7 +990,7 @@ static void doOptoInIt(int argc)
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
 	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+		 
 		exit(1);
 	}
 	if (argc == 5)
@@ -1135,9 +1023,9 @@ static void doOptoInIt(int argc)
 			val = atoi (argv [4]);
 		}
 	    
-		rValRising = wiringPiI2CReadReg8(dev, GPIO_EXT_IT_RISING_MEM_ADD);
-		delay(10);
-		rValFalling = wiringPiI2CReadReg8(dev, GPIO_EXT_IT_FALLING_MEM_ADD);
+		rValRising = readReg8(dev, GPIO_EXT_IT_RISING_MEM_ADD);
+		busyWait(10);
+		rValFalling = readReg8(dev, GPIO_EXT_IT_FALLING_MEM_ADD);
 		switch(val)
 		{
 			case 0: // disable
@@ -1165,11 +1053,11 @@ static void doOptoInIt(int argc)
 				exit(1);
 			break;
 		}
-		delay(10);
+		busyWait(10);
 		
-		wiringPiI2CWriteReg8(dev,GPIO_EXT_IT_RISING_MEM_ADD, 0xff & rValRising );
-		delay(10);
-		wiringPiI2CWriteReg8(dev,GPIO_EXT_IT_FALLING_MEM_ADD, 0xff & rValFalling );
+		writeReg8(dev,GPIO_EXT_IT_RISING_MEM_ADD, 0xff & rValRising );
+		busyWait(10);
+		writeReg8(dev,GPIO_EXT_IT_FALLING_MEM_ADD, 0xff & rValFalling );
 		
 		
 		
@@ -1206,13 +1094,12 @@ static void doIoIt(int argc)
 	
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{	 
 		exit(1);
 	}
 	if (argc == 3)
 	{
-		val = wiringPiI2CReadReg8(dev,GPIO_IT_FLAGS_MEM_ADD );
+		val = readReg8(dev,GPIO_IT_FLAGS_MEM_ADD );
 		printf("%d\n", val);
 	}
 	else
@@ -1234,22 +1121,21 @@ static void doOcOutWrite(int argc, char *argv[])
 
 	if ((argc != 5) && (argc != 4))
 	{
-		printf( "Usage: megaio <id> owrite <oc number> <on/off> \n") ;
-		printf( "Usage: megaio <id> owrite <oc reg value> \n") ;
+		printf( "Usage: megaio <id> ocwrite <oc number> <on/off> \n") ;
+		printf( "Usage: megaio <id> ocwrite <oc reg value> \n") ;
     
 		exit (1) ;
 	}
   
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
 	if(argc == 5)
 	{
 		pin = atoi (argv [3]) ;
-		if((pin < 1) || (pin > 4))
+		if((pin < CHANNEL_NR_MIN) || (pin > OC_CH_NR_MAX))
 		{
 			printf( "Open collector output number value out of range\n");
 			exit(1);
@@ -1265,13 +1151,13 @@ static void doOcOutWrite(int argc, char *argv[])
 		}
 		if (val == 0)
 		{
-			wiringPiI2CWriteReg8 (dev,OC_OUT_CLR_MEM_ADD, pin);
+			writeReg8 (dev,OC_OUT_CLR_MEM_ADD, pin);
 		}
 		else
 		{
-			wiringPiI2CWriteReg8 (dev,OC_OUT_SET_MEM_ADD, pin);
+			writeReg8 (dev,OC_OUT_SET_MEM_ADD, pin);
 		}
-		valR = wiringPiI2CReadReg8(dev, OC_OUT_VAL_MEM_ADD);
+		valR = readReg8(dev, OC_OUT_VAL_MEM_ADD);
 		valRmask = 0x01 & (valR >> (pin - 1));
 		retry = RETRY_TIMES;
 	
@@ -1279,13 +1165,13 @@ static void doOcOutWrite(int argc, char *argv[])
 		{
 			if (val == 0)
 			{
-				wiringPiI2CWriteReg8 (dev,OC_OUT_CLR_MEM_ADD, pin);
+				writeReg8 (dev,OC_OUT_CLR_MEM_ADD, pin);
 			}
 			else
 			{
-				wiringPiI2CWriteReg8 (dev,OC_OUT_SET_MEM_ADD, pin);
+				writeReg8 (dev,OC_OUT_SET_MEM_ADD, pin);
 			}
-			valR = wiringPiI2CReadReg8(dev, OC_OUT_VAL_MEM_ADD);
+			valR = readReg8(dev, OC_OUT_VAL_MEM_ADD);
 			valRmask = 0x01 & (valR >> (pin - 1));
 			retry--;
 		}
@@ -1312,9 +1198,9 @@ static void doOcOutWrite(int argc, char *argv[])
 		retry = RETRY_TIMES;
 		while((retry > 0) && (valR != val))
 		{
-			wiringPiI2CWriteReg8 (dev,OC_OUT_VAL_MEM_ADD, val);
+			writeReg8 (dev,OC_OUT_VAL_MEM_ADD, val);
 		
-			valR = wiringPiI2CReadReg8(dev, OC_OUT_VAL_MEM_ADD);
+			valR = readReg8(dev, OC_OUT_VAL_MEM_ADD);
 		}
 		if(retry == 0)
 		{
@@ -1338,7 +1224,7 @@ static void doOcOutRead(int argc, char *argv[])
   dev = doBoardInit (gHwAdd);
   if(dev <= 0)
   {
-    printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+     
     exit(1);
   }
   
@@ -1351,7 +1237,7 @@ static void doOcOutRead(int argc, char *argv[])
       exit(1);
     }
 
-    val = wiringPiI2CReadReg8(dev, OC_OUT_VAL_MEM_ADD);
+    val = readReg8(dev, OC_OUT_VAL_MEM_ADD);
     val = val & (1 << (pin-1));
     if(val != 0)
     {
@@ -1364,7 +1250,7 @@ static void doOcOutRead(int argc, char *argv[])
   }
   else if(argc == 3)
   {
-    val = wiringPiI2CReadReg8(dev, OC_OUT_VAL_MEM_ADD);
+    val = readReg8(dev, OC_OUT_VAL_MEM_ADD);
     printf("%d\n", val);
   }
   else
@@ -1486,16 +1372,37 @@ void doHelp(int argc, char *argv[])
 		}
 		else if(strcasecmp(argv[2], "atest") == 0)
 		{
-			printf("\tatest:  	Test a adc channel, compute mean, peak to peak and stdDev\n");
+			printf("\tatest:    Test a adc channel, compute mean, peak to peak and stdDev\n");
 			printf("\tUsage:    megaio <id> atest <ch>\n");
-			printf("\tExample:	megaio 0 atest 2 : test ADC channel 2\n");
+			printf("\tExample:  megaio 0 atest 2 : test ADC channel 2\n");
 		}
 		else if(strcasecmp(argv[2], "test") == 0)
 		{
 			printf("\ttest:   \tTest the board, it pass only with test card connected\n");
-			printf("\tWARNING:\tThis option should not be run with your board connected to external devices\n");
+			printf("\tWARNING:\tThis option should not be run with your board connected to external devices!\n");
 			printf("\tUsage:  \tmegaio <id> test\n");
 			printf("\tExample:\tmegaio 0 test\n");
+		}
+		else if(strcasecmp(argv[2], "test-dac-adc") == 0)
+		{
+			printf("\ttest-dac-adc:\tTest one analog in channel connected with the analog output channel\n");
+			printf("\tWARNING:     \tThis option should not be run with your board connected to external devices!\n");
+			printf("\tUsage:       \tmegaio <id> test-dac-adc <adcCh>\n");
+			printf("\tExample:     \tmegaio 0 test-dac-adc 1\n");
+		}
+		else if(strcasecmp(argv[2], "test-io") == 0)
+		{
+			printf("\ttest-io:\tTest two digital GPIO connected together\n");
+			printf("\tWARNING:\tThis option should not be run with your board connected to external devices!\n");
+			printf("\tUsage:  \tmegaio <id> test-io <ch1> <ch2>\n");
+			printf("\tExample:\tmegaio 0 test-io 1 2\n");
+		}
+		else if(strcasecmp(argv[2], "test-opto-oc") == 0)
+		{
+			printf("\ttest-opto-oc:\tTest one opto-isolated in channel connected with one open-collector output channel\n");
+			printf("\tWARNING:     \tThis option should not be run with your board connected to external devices!\n");
+			printf("\tUsage:       \tmegaio <id> test-opto-oc <optoCh> <ocCh>\n");
+			printf("\tExample:     \tmegaio 0 test-opto-o 1 1\n");
 		}
 		else if(strcasecmp(argv[2], "ocread") == 0)
 		{
@@ -1511,10 +1418,15 @@ void doHelp(int argc, char *argv[])
 			printf("\tUsage:    megaio <id> ocwrite <ch> <val>\n");
 			printf("\tExample:  megaio 0 ocwrite 2 on\n");
 		}
+		else
+		{
+			printf("Invalid command!\n");
+			printf("%s: %s\n", argv [0], usage);
+		}
 	}
 	else
 	{
-		printf ("%s: %s\n", argv [0], usage) ;
+		printf("%s: %s\n", argv [0], usage);
 	}
 }
 		
@@ -1526,14 +1438,13 @@ void doBoard(int argc)
 	{
 		dev = doBoardInit(gHwAdd);
 		if(dev <= 0)
-		{
-			printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+		{			 
 			exit(1);
 		}
-		hwMajor = wiringPiI2CReadReg8(dev, REVISION_HW_MAJOR_MEM_ADD);
-		hwMinor = wiringPiI2CReadReg8(dev, REVISION_HW_MINOR_MEM_ADD);
-		major = wiringPiI2CReadReg8(dev, REVISION_MAJOR_MEM_ADD);
-		minor = wiringPiI2CReadReg8(dev, REVISION_MINOR_MEM_ADD);
+		hwMajor = readReg8(dev, REVISION_HW_MAJOR_MEM_ADD);
+		hwMinor = readReg8(dev, REVISION_HW_MINOR_MEM_ADD);
+		major = readReg8(dev, REVISION_MAJOR_MEM_ADD);
+		minor = readReg8(dev, REVISION_MINOR_MEM_ADD);
 		printf("MegaIO Hardware version %d.%d Firmware version %d.%d\n", hwMajor, hwMinor, major, minor);
 	}
 	else
@@ -1553,7 +1464,7 @@ static void doVersion(void)
 static void  doAdcTest(int argc, char* argv[])
 {
 	int dev = -1;
-	u16 adcVal[500] = {0};
+	u16 adcVal[ADC_TEST_SAMPLES_NR] = {0};
 	u16 minVal = 4096;
 	u16 maxVal = 0;
 	int chNr = 0;
@@ -1564,13 +1475,12 @@ static void  doAdcTest(int argc, char* argv[])
 	
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
 	if(argc != 4)
 	{
-		printf("Invalid param numbers\n");
+		printf("Invalid parameters number\n");
 		exit(1);
 	}
 	chNr = atoi(argv[3]);
@@ -1580,7 +1490,8 @@ static void  doAdcTest(int argc, char* argv[])
 		exit(1);
 	}
 	addr = ADC_VAL_MEM_ADD + 2* (chNr-1);
-	for(i = 0; i < 500; i++)
+	printf("\n");
+	for(i = 0; i < ADC_TEST_SAMPLES_NR; i++)
 	{
 		adcVal[i] = readReg16(dev, addr);
 		if(adcVal[i] > maxVal)
@@ -1588,19 +1499,18 @@ static void  doAdcTest(int argc, char* argv[])
 		if(adcVal[i] < minVal)
 			minVal = adcVal[i];
 		mean += adcVal[i];
-		
-		delay(10);
-		printf("\b\b\b\b\b");
-		printf("%d", i);
+	
+		printf("\b\b\b%d\%%",(int)(i/(ADC_TEST_SAMPLES_NR/100)));
 		fflush(stdout);
+		busyWait(10);
 	}
 	printf("\n");
-	mean = mean/500.0;
-	for(i = 0; i< 500; i++)
+	mean = mean/ADC_TEST_SAMPLES_NR;
+	for(i = 0; i< ADC_TEST_SAMPLES_NR; i++)
 	{
 		sigma += (adcVal[i] - mean) * (adcVal[i] - mean);
 	}
-	sigma = sqrt(sigma / 500.0);
+	sigma = sqrt(sigma / ADC_TEST_SAMPLES_NR);
 	printf("Statistics on ch %d : \n", chNr);
 	printf("Standard deviation: %f\n", sigma);
 	printf("Mean %d\n", (int)mean);
@@ -1634,8 +1544,7 @@ static void doTest(int argc, char* argv[])
 	 
 	dev = doBoardInit (gHwAdd);
 	if(dev <= 0)
-	{
-		printf( "MegaIO id %d not detected\n", gHwAdd-0x31);
+	{		 
 		exit(1);
 	}
 	if(argc == 4)
@@ -1652,18 +1561,13 @@ static void doTest(int argc, char* argv[])
 	if (strcasecmp( argv[2], "test") == 0)
 	{
 		relVal = 0;
-		// Setup wiringPi
-		printf("Is relay perform corectly? Press y for yes or any key for no....");
-		wiringPiSetupSys ();
-		 piThreadCreate (waitForKey);
+		printf("Is relay perform correctly? Press y for Yes or any key for No....");
+		startThread();
 		while(relayResult == 0)
-		{
-			
+		{			
 			for (i = 0; i < 8; i++)
 			{
-				piLock (COUNT_KEY) ;
-				relayResult = globalResponse;
-				piUnlock(COUNT_KEY);
+				relayResult = checkThreadResult();
 				if(relayResult != 0)
 				{
 					break;
@@ -1674,8 +1578,8 @@ static void doTest(int argc, char* argv[])
 				retry = RETRY_TIMES;
 				while((retry > 0) && ((valR & relVal) == 0))
 				{
-					wiringPiI2CWriteReg8 (dev,RELAY_ON_MEM_ADD, relayOrder[i]);	
-					valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+					writeReg8 (dev,RELAY_ON_MEM_ADD, relayOrder[i]);	
+					valR = readReg8(dev, RELAY_MEM_ADD);
 				}
 				if(retry == 0)
 				{
@@ -1684,15 +1588,13 @@ static void doTest(int argc, char* argv[])
 						fclose(file);
 					exit(1);
 				}		
-				delay(150);
+				busyWait(150);
 			}
 		
 		
 			for (i = 0; i < 8; i++)
 			{	
-				piLock (COUNT_KEY) ;
-				relayResult = globalResponse;
-				piUnlock(COUNT_KEY);
+				relayResult = checkThreadResult();
 				if(relayResult != 0)
 				{
 					break;
@@ -1703,8 +1605,8 @@ static void doTest(int argc, char* argv[])
 				retry = RETRY_TIMES;
 				while((retry > 0) && ((valR & relVal) != 0))
 				{
-					wiringPiI2CWriteReg8 (dev,RELAY_OFF_MEM_ADD, relayOrder[i]);
-					valR = wiringPiI2CReadReg8(dev, RELAY_MEM_ADD);
+					writeReg8 (dev,RELAY_OFF_MEM_ADD, relayOrder[i]);
+					valR = readReg8(dev, RELAY_MEM_ADD);
 				}
 				if(retry == 0)
 				{
@@ -1714,12 +1616,12 @@ static void doTest(int argc, char* argv[])
 					exit(1);
 				}
 				
-				delay(150);
+				busyWait(150);
 			}
 		}
 		
-		wiringPiI2CWriteReg8 (dev,RELAY_MEM_ADD, 0x00);
-		delay(150);
+		writeReg8 (dev,RELAY_MEM_ADD, 0x00);
+		busyWait(150);
 		if(relayResult == YES)
 		{
 			if(file)
@@ -1758,13 +1660,13 @@ static void doTest(int argc, char* argv[])
 			while (((dacVal != 0)|| (adcVal > 150)) && (retry < 100))
 			{
 				writeReg16(dev, DAC_VAL_H_MEM_ADD, 0x0000);
-				delay(2); 
+				busyWait(2); 
 				dacVal = readReg16(dev,DAC_VAL_H_MEM_ADD);
-				delay(2);
+				busyWait(2);
 				retry ++;
 				addr = ADC_VAL_MEM_ADD + 2* (i-1);
 				adcVal = readReg16(dev, addr);
-				delay(2);
+				busyWait(2);
 			}
 			addr = ADC_VAL_MEM_ADD + 2* (i-1);
 			adcVal = readReg16(dev, addr);
@@ -1787,21 +1689,21 @@ static void doTest(int argc, char* argv[])
 			while (((dacVal != 3000)|| (adcVal < ADC_TEST_VAL_LOW)) && (retry < 100))
 			{
 				writeReg16(dev, DAC_VAL_H_MEM_ADD, 3000);
-				delay(2);
+				busyWait(2);
 				dacVal = readReg16(dev,DAC_VAL_H_MEM_ADD);
-				delay(2);
+				busyWait(2);
 				retry ++;
 				addr = ADC_VAL_MEM_ADD + 2* (i-1);
 				adcVal = readReg16(dev, addr);
 			}
 		}
 		addr = ADC_VAL_MEM_ADD + 2* (i-1);
-		delay(1);
+		busyWait(1);
 		adcVal = readReg16(dev, addr);
 		retry = 0;
 		while(((ADC_TEST_VAL_LOW > adcVal) || (adcVal > ADC_TEST_VAL_HIGH)) && (retry < 100))
 		{
-			delay(2);
+			busyWait(2);
 			adcVal = readReg16(dev, addr);
 			retry ++;
 		}
@@ -1862,29 +1764,30 @@ static void doTest(int argc, char* argv[])
 	}
 	//*****************Open collector out/ Optocupled in test****************************/
 	u8 Q = 2;
-	for(ocCh = 1; ocCh < 5; ocCh++)
+	
+	for(ocCh = CHANNEL_NR_MIN; ocCh <= OC_CH_NR_MAX; ocCh++)
 	{
+		writeReg8 (dev,OC_OUT_CLR_MEM_ADD, ocCh);
 #ifdef TEST_RESET
-	printf("hit a key\n");
-	getchar();
+		printf("hit a key\n");
+		getchar();
 #endif
-    if(ocCh > 2)
-    {
-      Q = 1;
-    }
-    else
-    {
-      Q = 2;
-    }
-      
+		if(ocCh > 2)
+		{
+		  Q = 1;
+		}
+		else
+		{
+		  Q = 2;
+		}   
 		retry = 0;
 		opto = optoTab[ocCh - 1] + 1;
 		while((opto != optoTab[ocCh - 1]) && (retry < 10))
 		{
-			//delay(1);
-			wiringPiI2CWriteReg8 (dev,OC_OUT_SET_MEM_ADD, ocCh);
-			//delay(1);
-			opto = wiringPiI2CReadReg8(dev, OPTO_IN_MEM_ADD);
+			//busyWait(1);
+			writeReg8 (dev,OC_OUT_SET_MEM_ADD, ocCh);
+			//busyWait(1);
+			opto = readReg8(dev, OPTO_IN_MEM_ADD);
 			retry ++;
 		}
 		if(opto == optoTab[ocCh - 1])
@@ -1910,25 +1813,23 @@ static void doTest(int argc, char* argv[])
 			{
 				printf("%s FAIL ", optTest[ocCh -1]);
 				pass = 0;
-        
-  			if(opto == 0)
-        {
-          printf("Check D10, D11, Q%d!\n", Q);
-        }
-        else if(opto < 0x10)
-        {
-          printf("Check D11!\n");
-        }
-        else if(opto > 0x0f)
-        {
-          printf("Check D10!\n");
-        }
-      } 
-		}
 		
-		
-		delay(1);
-		wiringPiI2CWriteReg8 (dev,OC_OUT_CLR_MEM_ADD, ocCh);	
+				if(opto == 0)
+				{
+				  printf("Check D10, D11, Q%d!\n", Q);
+				}
+				else if(opto < 0x10)
+				{
+				  printf("Check D11!\n");
+				}
+				else if(opto > 0x0f)
+				{
+				  printf("Check D10!\n");
+				}		
+			} 
+		}		
+		busyWait(1);
+		writeReg8 (dev,OC_OUT_CLR_MEM_ADD, ocCh);	
 	}
 	// ********************** I/O test*********************************************
 	//setup io1/2/4 as output.
@@ -1940,13 +1841,13 @@ static void doTest(int argc, char* argv[])
 	ioRead = 1;
 	while((ioRead != 0) && (retry < 10))
 	{
-		wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x34);
-		delay(1);
-		wiringPiI2CWriteReg8 (dev,GPIO_VAL_MEM_ADD, 0);
-		delay(1);
+		writeReg8 (dev,GPIO_DIR_MEM_ADD, 0x34);
+		busyWait(1);
+		writeReg8 (dev,GPIO_VAL_MEM_ADD, 0);
+		busyWait(1);
 	
-		ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-		delay(1);
+		ioRead = readReg8(dev, GPIO_VAL_MEM_ADD);
+		busyWait(1);
 		retry ++;
 	}
 	dacFault = 0;
@@ -1970,12 +1871,12 @@ static void doTest(int argc, char* argv[])
 	getchar();
 #endif
 		retry = 0;
-		while((ioRead != 5) && (retry < 10))
+		while((ioRead != 5) && (retry < RETRY_TIMES))
 		{
-			delay(1);
-			wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 1);
-			delay(1);
-			ioRead =wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+			busyWait(1);
+			writeReg8 (dev,GPIO_SET_MEM_ADD, 1);
+			busyWait(1);
+			ioRead =readReg8(dev, GPIO_VAL_MEM_ADD);
 			retry ++;
 		}
 		if(ioRead != 5)
@@ -2006,14 +1907,14 @@ static void doTest(int argc, char* argv[])
 	getchar();
 #endif	
 		retry = 0;
-		while((ioRead != 18) && (retry < 10))
+		while((ioRead != 18) && (retry < RETRY_TIMES))
 		{	
-			delay(1);
-			wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 1);
-			delay(1);
-			wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 2);
-			delay(1);
-			ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
+			busyWait(1);
+			writeReg8 (dev,GPIO_CLR_MEM_ADD, 1);
+			busyWait(1);
+			writeReg8 (dev,GPIO_SET_MEM_ADD, 2);
+			busyWait(1);
+			ioRead = readReg8(dev, GPIO_VAL_MEM_ADD);
 			retry ++;
 		}
 		
@@ -2045,15 +1946,15 @@ static void doTest(int argc, char* argv[])
 	getchar();
 #endif	
 		retry = 0;
-		while((ioRead != 40) && (retry < 10))
+		while((ioRead != 40) && (retry < RETRY_TIMES))
 		{
-			delay(1);
-			wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 2);
-			delay(1);
-			wiringPiI2CWriteReg8 (dev,GPIO_SET_MEM_ADD, 4);
-			delay(1);
-			ioRead = wiringPiI2CReadReg8(dev, GPIO_VAL_MEM_ADD);
-			delay(1);
+			busyWait(1);
+			writeReg8 (dev,GPIO_CLR_MEM_ADD, 2);
+			busyWait(1);
+			writeReg8 (dev,GPIO_SET_MEM_ADD, 4);
+			busyWait(1);
+			ioRead = readReg8(dev, GPIO_VAL_MEM_ADD);
+			busyWait(1);
 			retry ++;
 		}
 		
@@ -2084,34 +1985,219 @@ static void doTest(int argc, char* argv[])
 	printf("hit a key\n");
 	getchar();
 #endif
-		wiringPiI2CWriteReg8 (dev,GPIO_CLR_MEM_ADD, 4);
+		writeReg8 (dev,GPIO_CLR_MEM_ADD, 4);
 	}
-	delay(1);
-	wiringPiI2CWriteReg8 (dev,GPIO_DIR_MEM_ADD, 0x3f);	
+	busyWait(1);
+	writeReg8 (dev,GPIO_DIR_MEM_ADD, 0x3f);	
 	if(file)
 	{
 		fclose(file);
 	}
 	if(pass == 0)
 	{
-     printf("    ########    ###    #### ##       #### \n");
-     printf("    ##         ## ##    ##  ##       #### \n");
-     printf("    ##        ##   ##   ##  ##       #### \n");
-     printf("    ######   ##     ##  ##  ##        ##  \n");
-     printf("    ##       #########  ##  ##            \n");
-     printf("    ##       ##     ##  ##  ##       #### \n");
-     printf("    ##       ##     ## #### ######## #### \n");
+		printf("%s", failStr);
 	}
 	else
 	{
-     printf("    ########     ###     ######   ######  \n");
-     printf("    ##     ##   ## ##   ##    ## ##    ## \n");
-     printf("    ##     ##  ##   ##  ##       ##       \n");
-     printf("    ########  ##     ##  ######   ######  \n");
-     printf("    ##        #########       ##       ## \n");
-     printf("    ##        ##     ## ##    ## ##    ## \n");
-     printf("    ##        ##     ##  ######   ######  \n");
+		printf("%s", passStr);
 	}
+}
+// megaio <id> test-io <ch1> <ch2>
+static void doIoTest(int argc, char* argv[])
+{
+	int dev = -1;
+	int ch1, ch2;
+	int val;
+	
+	dev = doBoardInit (gHwAdd);
+	if(dev <= 0)
+	{
+		exit(1);
+	}
+	if(argc != 5)
+	{
+		printf("Invalid parameters number!\n");
+		exit(1);
+	}
+	ch1 = atoi(argv[3]);
+	if((ch1 < CHANNEL_NR_MIN) || (ch1 > GPIO_CH_NR_MAX))
+	{
+		printf("Invalid I/O channel number!\n");
+		exit(1);
+	}
+	
+	ch2 = atoi(argv[4]);
+	if((ch2 < CHANNEL_NR_MIN) || (ch2 > GPIO_CH_NR_MAX))
+	{
+		printf("Invalid I/O channel number!\n");
+		exit(1);
+	}
+	if(ch1 == ch2)
+	{
+		printf("The two channels must be different!\n");
+		exit(1);
+	}
+	//set ch1 as output
+	val = ~(1 << (ch1 - 1));
+	writeReg8(dev,GPIO_DIR_MEM_ADD, val);
+	writeReg8(dev, GPIO_CLR_MEM_ADD, ch1);
+	val = readReg8(dev, GPIO_VAL_MEM_ADD);
+	if( (val & (1 << (ch2 - 1))) != 0)
+	{
+		writeReg8(dev,GPIO_DIR_MEM_ADD, 0xff);
+		printf("Test FAIL!\n");
+		exit(1);
+	}
+	writeReg8(dev, GPIO_SET_MEM_ADD, ch1);
+	val = readReg8(dev, GPIO_VAL_MEM_ADD);
+	if( (val & (1 << (ch2 - 1))) == 0)
+	{
+		writeReg8(dev,GPIO_DIR_MEM_ADD, 0xff);
+		printf("Test FAIL!\n");
+		exit(1);
+	}
+	
+	printf("Test PASS\n");
+	
+}
+//megaio <id> test-opto-oc <optoCh> <ocCh>
+static void doOptoOcTest(int argc, char* argv[])
+{
+	int dev = -1;
+	int optCh, ocCh;
+	int opto;
+	
+	dev = doBoardInit (gHwAdd);
+	if(dev <= 0)
+	{
+		exit(1);
+	}
+	if(argc != 5)
+	{
+		printf("Invalid parameters number!\n");
+		exit(1);
+	}
+	
+	optCh = atoi(argv[3]);
+	if((optCh < CHANNEL_NR_MIN) || (optCh > OPTO_CH_NR_MAX))
+	{
+		printf("Invalid Opto channel number!\n");
+		exit(1);
+	}
+	
+	ocCh = atoi(argv[4]);
+	if((ocCh < CHANNEL_NR_MIN) || (ocCh > OC_CH_NR_MAX))
+	{
+		printf("Invalid Open-collector channel number!\n");
+		exit(1);
+	}
+// set oc channel to floating
+	writeReg8(dev,OC_OUT_CLR_MEM_ADD, ocCh);
+	
+	opto = readReg8(dev,OPTO_IN_MEM_ADD);
+	if( (opto & (1 << (optCh - 1))) != 0)
+	{
+		printf("Test FAIL!\n");
+		exit(1);
+	}
+// set oc channel to GND
+	writeReg8(dev,OC_OUT_SET_MEM_ADD, ocCh);
+	
+	opto = readReg8(dev,OPTO_IN_MEM_ADD);
+	if( (opto & (1 << (optCh - 1))) == 0)
+	{
+		printf("Test FAIL!\n");
+		writeReg8(dev,OC_OUT_CLR_MEM_ADD, ocCh);
+		exit(1);
+	}
+	
+	writeReg8(dev,OC_OUT_CLR_MEM_ADD, ocCh);
+	printf("Test PASS\n");
+}
+	
+
+//megaio <id> test-dac-adc <adcCh>
+static void  doDacAdcTest(int argc, char* argv[])
+{
+	int dev = -1;	
+	int chNr = 0;
+	int val = 0;
+	int err, retry;
+	
+	dev = doBoardInit (gHwAdd);
+	if(dev <= 0)
+	{
+		exit(1);
+	}
+	if(argc != 4)
+	{
+		printf("Invalid parameters number\n");
+		exit(1);
+	}
+	chNr = atoi(argv[3]);
+	if((chNr < CHANNEL_NR_MIN) || (chNr > ADC_CH_NR_MAX))
+	{
+		printf("Invalid channel number!\n");
+		exit(1);
+	}
+	// minim
+	val = ANALOG_VAL_MIN;
+	if(dacSet(dev, val) != OK)
+	{
+		printf("Fail to write DAC!\n");
+		exit(1);
+	}
+	err = val - adcGet(dev, chNr);
+	retry = RETRY_TIMES;
+	while(((err < -ANALOG_ERR_THRESHOLD) || (err > ANALOG_ERR_THRESHOLD)) && (retry > 0))
+	{
+		err = val - adcGet(dev, chNr);
+		retry--;
+	}
+	if(0 == retry)
+	{
+		printf("Test FAIL!\n");
+		exit(1);
+	}
+	// half
+	val = (ANALOG_VAL_MAX - ANALOG_VAL_MIN)/2;
+	if(dacSet(dev, val) != OK)
+	{
+		printf("Fail to write DAC!\n");
+		exit(1);
+	}
+	err = val - adcGet(dev, chNr);
+	retry = RETRY_TIMES;
+	while(((err < -ANALOG_ERR_THRESHOLD) || (err > ANALOG_ERR_THRESHOLD)) && (retry > 0))
+	{
+		err = val - adcGet(dev, chNr);
+		retry--;
+	}
+	if(0 == retry)
+	{
+		printf("Test FAIL!\n");
+		exit(1);
+	}
+	// max
+	val = ANALOG_VAL_MAX;
+	if(dacSet(dev, val) != OK)
+	{
+		printf("Fail to write DAC!\n");
+		exit(1);
+	}
+	err = val - adcGet(dev, chNr);
+	retry = RETRY_TIMES;
+	while(((err < -ANALOG_ERR_THRESHOLD) || (err > ANALOG_ERR_THRESHOLD)) && (retry > 0))
+	{
+		err = val - adcGet(dev, chNr);
+		retry--;
+	}
+	if(0 == retry)
+	{
+		printf("Test FAIL!\n");
+		exit(1);
+	}
+	printf("Test PASS\n");
 }
 
 /*
@@ -2142,6 +2228,14 @@ int main(int argc, char *argv [])
   if (strcasecmp (argv [1], "-warranty") == 0)
   {
     printf("%s\n", warranty);
+    return 0;
+  }
+  
+  // Connector
+
+  if (strcasecmp (argv [1], "-connector") == 0)
+  {
+    printf("%s\n", cnv2);
     return 0;
   }
 // Version
@@ -2198,6 +2292,9 @@ int main(int argc, char *argv [])
   else if (strcasecmp (argv [2], "test"      ) == 0)	{ doTest           (argc, argv) ;	return 0 ; }
   else if (strcasecmp (argv [2], "testc"     ) == 0)	{ doTest           (argc, argv) ;	return 0 ; }
   else if (strcasecmp (argv [2], "atest"     ) == 0)	{ doAdcTest        (argc, argv) ;	return 0 ; }
+  else if (strcasecmp (argv [2], "test-dac-adc") == 0)	{ doDacAdcTest     (argc, argv) ;	return 0 ; }
+  else if (strcasecmp (argv [2], "test-opto-oc") == 0)	{ doOptoOcTest     (argc, argv) ;	return 0 ; }
+  else if (strcasecmp (argv [2], "test-io"   ) == 0)	{ doIoTest         (argc, argv) ;	return 0 ; }
   else { printf( "%s\n", usage) ; return 1;}
   return 0;
 }

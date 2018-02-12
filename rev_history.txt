@@ -8,26 +8,43 @@ Version 1.1.6:
 1) Board detection mechanism
 2) DEBUG defines
 3) Retry report in debug mode
+
 Version 1.1.7:
 1)Update board option 
 2) Add interrupt functionality for optoio and XPIO
 3) Update help command(s)
+
 Version 1.1.7:
 1) Add rwrite <value> command with retry
+
 Version 1.1.9
 1) Add led board suport.
+
 Version 2.0.1:
 1) Change for hardware version 3.1 (no back compatibility!!!!!!!!!!)
 2) Add "megaio <id> test" - self test (you shuld plug the test card in order to PASS) Warning!! This test will change relay state 
 3) Add "megaio <id> test <file path> - self test and save all result in text format in file	
 4) Add "megaio <id> atest <ch> - Test the analog channel, compute "peack to peack" "median" "standard deviation" values.
-5) Add "megaio -warranty"			
+5) Add "megaio -warranty"	
+		
 Version 2.1.0:
 1)Treat LED board independet (no led change with relay change)
 2) Add "megaio -lw <val>" : Write 32bits hex value to led card
 3) Add "megaio -lw <led> <on/off, 1/0, high/low>" : Turn on/off corespondent led
 4) Add "megaio -lt"  :fash the led's... 
+
 Version 2.1.2:
 1) Reduce delay in test command
 2) Introduce retry mechanism in test commands
-3) Add testc command similar to test without relays (used to test "test cards") 
+3) Add testc command similar to test without relays (used to test "test cards")
+......
+Version 2.2.0: 
+1) Split function in two c files: comm.c (platform specific communication functions); megaio.c (platfom independent MegaIO control functions) This is made for easy mantain UP-Board repository 
+2) Rewrite some functions in order to support new communications routines
+3) Eliminate some "magic numbers"
+
+Version 2.2.1:
+1) Add "-connector" option to display MegaIO connector pinout 
+2) Add " test-opto-oc <optoCh> <ocCh>" option for easy testing a opto/opencollector pair 
+3) Add " test-io <ch1> <ch2>" option for easy test two I/O pair
+4) Add " test-dac-adc <adcCh>" option for easy test a adc channel
