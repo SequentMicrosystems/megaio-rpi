@@ -30,7 +30,7 @@
 
 #define VERSION_BASE	(int)2
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)1
+#define VERSION_MINOR	(int)2
 
 int gHwAdd = MEGAIO_HW_I2C_BASE_ADD;
 
@@ -136,43 +136,6 @@ void printbits(int v)
 	for(i = 17; i >= 0; i--) putchar('0' + ((v >> i) & 1));
 }
 
-int readReg24(int dev, int add)
-{
-	int val, aux8;
-	
-	aux8 = readReg8(dev, add + 2);
-	val = aux8;
-	/*val = 0xffff00 & (val << 8);*/
-	aux8 = readReg8(dev, add + 1);
-	val += 0xff00 & (aux8 << 8);
-	
-	aux8 = readReg8(dev, add );
-	val += 0xff0000 & (aux8 << 16);
-#ifdef DEBUG_I	
-	printbits(val);
-	printf("\n");
-	printf("%#08x\n", val);
-#endif
-	return val;
-}
-
-
-
-int writeReg24(int dev, int add, int val)
-{
-	int wVal;//, aux8;
-	
-	wVal = 0xff & (val >> 8);
-	writeReg8(dev,add+1, wVal);
-	
-	wVal = 0xff & ( val >> 16);
-	writeReg8(dev,add, wVal);
-	
-	wVal = 0xff & val;
-	writeReg8(dev,add+2, wVal);
-	
-	return 0;
-}
 
 // set ON/OFF specify relay channel
 int relayChSet(int dev, u8 channel, OutStateEnumType state)
