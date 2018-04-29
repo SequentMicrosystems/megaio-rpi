@@ -15,14 +15,14 @@ stack - is the stack level of megaio card ( it can be selected from address jump
 
 relay - relay number (id) [1..8]
 
-value - relay state 0: turn ON, 1: turn OFF
+value - relay state 1: turn ON, 0: turn OFF[0..1]
 
 ### set_relays(stack, value)
 Set all relays state.
 
 stack - is the stack level of megaio card ( it can be selected from address jumpers) [0..3]
 
-value - is the 8 bit value of all relays (ex: 255 turn on all relays, 0 turn off all relay, 1 - turn on relay 1 and off the rest)
+value - is the 8 bit value of all relays (ex: 255 turn on all relays, 0 turn off all relay, 1 - turn on relay no.1 and off the rest)
 
 ### get_relays(stack)
 Return the state of all relays.
