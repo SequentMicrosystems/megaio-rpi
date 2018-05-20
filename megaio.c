@@ -30,7 +30,7 @@
 
 #define VERSION_BASE	(int)2
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)2
+#define VERSION_MINOR	(int)3
 
 int gHwAdd = MEGAIO_HW_I2C_BASE_ADD;
 
@@ -1524,7 +1524,7 @@ static void doTest(int argc, char* argv[])
 	if (strcasecmp( argv[2], "test") == 0)
 	{
 		relVal = 0;
-		printf("Is relay perform correctly? Press y for Yes or any key for No....");
+		printf("Are all relays and LEDs turning on and off in sequence?\nPress y for Yes or any key for No....");
 		startThread();
 		while(relayResult == 0)
 		{			
