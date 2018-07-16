@@ -119,7 +119,7 @@ stack - stack level of the megaio card (selectable from address jumpers [0..3])
 return - state of pins ( ex: 0: all pins OFF, 15: all pins ON, 1:  pin #1 ON, all the rest: OFF)
 
 ### add_opto_event(stack, ch, edge, callback)
-Add a function to be called when a change of a optocupled input pin status occur;
+Add a function to be called when a change of a optocupled input pin status occur ( also enable the interrupt on selected edge and channel);
 
 stack - stack level of the megaio card (selectable from address jumpers [0..3])
 
@@ -129,3 +129,37 @@ edge - RISING or FALLING
 
 callback - the name of the function to be called.
 
+### remove_opto_event(stack, ch, edge)
+Remove previus added callback and disable interrupt on selected channel and edge.
+
+stack - stack level of the megaio card (selectable from address jumpers [0..3])
+
+ch - optocupled channel number [1..8]
+
+edge - RISING or FALLING
+
+### remove_all_opto_events()
+Remove all callbacks and disable all interrupts on evry megaio card connected
+
+### add_gpio_event(stack, ch, edge, callback)
+Add a function to be called when a change of a gpio input pin status occur ( also enable the interrupt on selected edge and channel);
+
+stack - stack level of the megaio card (selectable from address jumpers [0..3])
+
+ch - gpio channel number [1..6]
+
+edge - RISING or FALLING
+
+callback - the name of the function to be called.
+
+### remove_gpio_event(stack, ch, edge)
+Remove previus added callback and disable interrupt on selected channel and edge.
+
+stack - stack level of the megaio card (selectable from address jumpers [0..3])
+
+ch - gpio channel number [1..6]
+
+edge - RISING or FALLING
+
+### remove_all_gpio_events()
+Remove all callbacks and disable all gpio interrupts on evry megaio card connected
