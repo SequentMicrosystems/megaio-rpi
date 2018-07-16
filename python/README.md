@@ -118,3 +118,14 @@ stack - stack level of the megaio card (selectable from address jumpers [0..3])
 
 return - state of pins ( ex: 0: all pins OFF, 15: all pins ON, 1:  pin #1 ON, all the rest: OFF)
 
+### add_opto_event(stack, ch, edge, callback)
+Add a function to be called when a change of a optocupled input pin status occur;
+
+stack - stack level of the megaio card (selectable from address jumpers [0..3])
+
+ch - optocupled channel number [1..8]
+
+edge - RISING or FALLING
+
+callback - the name of the function to be called.
+
