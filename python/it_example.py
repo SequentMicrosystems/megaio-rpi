@@ -19,7 +19,7 @@ m.add_opto_event(0, 2, m.RISING, opto_callback)
 try:
   print "This example show you how to use external interrupt on megaio board"
   
-  print "Connect pin 2 and 3 for optocuplers power(+5V and 5VEXT)"
+  print "Connect pin 2 and 4 for optocuplers power(+5V and 5VEXT)"
   print "Momentary connect opto channel 1 and 2 (pin 3 and 5) to GND"
   print "for generating the interrupts"
   print "Waith for opto events.." 
