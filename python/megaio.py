@@ -1,4 +1,5 @@
 import smbus
+import RPi.GPIO as GPIO 
 
 #bus = smbus.SMBus(1)    # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
 
@@ -33,7 +34,19 @@ REVISION_HW_MINOR_MEM_ADD = 0x3d
 REVISION_MAJOR_MEM_ADD = 0x3e
 REVISION_MINOR_MEM_ADD = 0x3f
 
+RISING = 1
+FALLING = 0
 
+opto_callbacks = {}
+gpio_callbacks = {}
+
+GPIO.setmode(GPIO.BCM) 
+GPIO.setup(4, GPIO.IN, pull_up_down=GPIO.PUD_UP)  
+
+
+def version():
+  print "megaio python library v1.2 Sequent Microsystems"
+  
 def set_relay(stack, relay, value):
 	bus = smbus.SMBus(1)
 	if stack < 0 or stack > 3:
@@ -219,3 +232,169 @@ def get_oc_val(stack):
 	outVal = bus.read_byte_data(DEVICE_ADDRESS + stack, OC_OUT_VAL_MEM_ADD)
 	return outVal
 	
+#External interrupt setup functions ###########################################
+
+#add optocupled input event
+def add_opto_event(stack, ch, edge, callback):
+  global opto_callbacks
+  if stack < 0 or stack > 3:
+    raise ValueError('Invalid stack level')
+    return
+
+  if edge <> RISING and edge <> FALLING or ch < 1 or ch > 8:
+    raise ValueError('Invalid edge or channel')
+    return
+    
+  if stack not in opto_callbacks:
+    opto_callbacks[stack] = {}  
+  if ch not in opto_callbacks[stack]:
+    opto_callbacks[stack][ch] = {}
+    
+  opto_callbacks[stack][ch][edge] = callback
+  
+  bus = smbus.SMBus(1)
+  aux = 1 << (ch-1); 
+  if edge == RISING: 
+    inData = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_RISING_MEM_ADD)
+    inData = inData | aux;
+    bus.write_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_RISING_MEM_ADD, inData)
+  else:
+    inData = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_FALLING_MEM_ADD)
+    inData = inData | aux;
+    bus.write_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_FALLING_MEM_ADD, inData)  
+
+# remove optocupled input event
+def remove_opto_event(stack, ch, edge):
+  global opto_callbacks
+  if stack < 0 or stack > 3:
+    raise ValueError('Invalid stack level')
+    return
+      
+  if edge <> RISING and edge <> FALLING or ch < 1 or ch > 8:
+    raise ValueError('Invalid edge or channel')
+    return
+  if stack in opto_callbacks: 
+    if ch in opto_callbacks[stack]:
+      if edge in opto_callbacks[stack][ch]:
+        del opto_callbacks[stack][ch][edge]
+      
+  bus = smbus.SMBus(1)
+  aux = ~(1 << (ch-1)); 
+  if edge == RISING: 
+    inData = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_RISING_MEM_ADD)
+    inData = inData & aux;
+    bus.write_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_RISING_MEM_ADD, inData)
+  else:
+    inData = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_FALLING_MEM_ADD)
+    inData = inData & aux;
+    bus.write_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_FALLING_MEM_ADD, inData) 
+     
+# remove all optocupled input events  
+def remove_all_opto_events():
+  global opto_callbacks
+  for stack in opto_callbacks:
+    for ch in opto_callbacks[stack]:
+      remove_opto_event(stack, ch, RISING)
+      remove_opto_event(stack, ch, FALLING)
+  
+  del opto_callbacks
+  
+  
+ #add gpio input event
+def add_gpio_event(stack, ch, edge, callback):
+  global gpio_callbacks
+  
+  if stack < 0 or stack > 3:
+    raise ValueError('Invalid stack level')
+    return 
+       
+  if edge <> RISING and edge <> FALLING or ch < 1 or ch > 6:
+    raise ValueError('Invalid edge or channel')
+    return
+    
+  if stack not in gpio_callbacks:
+     gpio_callbacks[stack] = {}    
+    
+  if ch not in gpio_callbacks[stack]:
+    gpio_callbacks[stack][ch] = {}
+    
+  gpio_callbacks[stack][ch][edge] = callback
+  
+  bus = smbus.SMBus(1)
+  aux = 1 << (ch-1); 
+  if edge == RISING: 
+    inData = bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_EXT_IT_RISING_MEM_ADD)
+    inData = inData | aux;
+    bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_EXT_IT_RISING_MEM_ADD, inData)
+  else:
+    inData = bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_EXT_IT_FALLING_MEM_ADD)
+    inData = inData | aux;
+    bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_EXT_IT_FALLING_MEM_ADD, inData)  
+
+# remove gpio input event
+def remove_gpio_event(stack, ch, edge):
+  global gpio_callbacks
+  
+  if stack < 0 or stack > 3:
+    raise ValueError('Invalid stack level')
+    return
+      
+  if edge <> RISING and edge <> FALLING or ch < 1 or ch > 6:
+    raise ValueError('Invalid edge or channel')
+    return
+    
+  if stack in gpio_callbacks: 
+    if ch in gpio_callbacks[stack]:
+      if edge in gpio_callbacks[stack][ch]:
+        del gpio_callbacks[stack][ch][edge]
+      
+  bus = smbus.SMBus(1)
+  aux = ~(1 << (ch-1)); 
+  if edge == RISING: 
+    inData = bus.read_byte_data(DEVICE_ADDRESS + stack,  GPIO_EXT_IT_RISING_MEM_ADD)
+    inData = inData & aux;
+    bus.write_byte_data(DEVICE_ADDRESS + stack,  GPIO_EXT_IT_RISING_MEM_ADD, inData)
+  else:
+    inData = bus.read_byte_data(DEVICE_ADDRESS + stack,  GPIO_EXT_IT_FALLING_MEM_ADD)
+    inData = inData & aux;
+    bus.write_byte_data(DEVICE_ADDRESS + stack,  GPIO_EXT_IT_FALLING_MEM_ADD, inData)  
+ 
+# remove all gpio input events  
+def remove_all_gpio_events():
+  global gpio_callbacks
+  for stack in gpio_callbacks:
+    for ch in gpio_callbacks[stack]:
+      remove_gpio_event(stack, ch, RISING)
+      remove_gpio_event(stack, ch, FALLING)
+  del gpio_callbacks
+  
+    
+# Process the interrupt
+def process_isr(channel):
+  bus = smbus.SMBus(1)
+  for stack in opto_callbacks:
+    opto_it_flags = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IT_FLAGS_MEM_ADD)
+    opto_val = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IN_MEM_ADD)
+    for ch in opto_callbacks[stack]:
+      if ((opto_it_flags >>(ch -1))  & 1)  == 1: 
+        if ((opto_val >>(ch -1)) & 1) == 1: 
+          if RISING in opto_callbacks[stack][ch]:#rising edge
+            opto_callbacks[stack][ch][RISING](ch)
+        else:
+          if FALLING in opto_callbacks[stack][ch]:
+            opto_callbacks[stack][ch][FALLING](ch)
+            
+  for stack in gpio_callbacks: 
+    gpio_it_flags = bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_IT_FLAGS_MEM_ADD)
+    gpio_val = bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_VAL_MEM_ADD)
+    for ch in gpio_callbacks[stack]:
+      if ((gpio_it_flags >> (ch - 1)) & 1)  == 1: 
+        if ((gpio_val >> (ch - 1)) & 1) == 1: 
+          if RISING in gpio_callbacks[stack][ch] :#rising edge
+            gpio_callbacks[stack][ch][RISING](ch)
+        else:
+          if FALLING in gpio_callbacks[stack][ch]:
+            gpio_callbacks[stack][ch][FALLING](ch)
+      
+GPIO.add_event_detect(4, GPIO.FALLING, callback=process_isr, bouncetime=200) 
+       
