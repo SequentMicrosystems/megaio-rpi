@@ -45,7 +45,7 @@ GPIO.setup(4, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 
 def version():
-  print "megaio python library v1.2 Sequent Microsystems"
+  print ("megaio python library v1.2 Sequent Microsystems")
   
 def set_relay(stack, relay, value):
 	bus = smbus.SMBus(1)
@@ -241,7 +241,7 @@ def add_opto_event(stack, ch, edge, callback):
     raise ValueError('Invalid stack level')
     return
 
-  if edge <> RISING and edge <> FALLING or ch < 1 or ch > 8:
+  if edge != RISING and edge != FALLING or ch < 1 or ch > 8:
     raise ValueError('Invalid edge or channel')
     return
     
@@ -270,7 +270,7 @@ def remove_opto_event(stack, ch, edge):
     raise ValueError('Invalid stack level')
     return
       
-  if edge <> RISING and edge <> FALLING or ch < 1 or ch > 8:
+  if edge != RISING and edge != FALLING or ch < 1 or ch > 8:
     raise ValueError('Invalid edge or channel')
     return
   if stack in opto_callbacks: 
@@ -308,7 +308,7 @@ def add_gpio_event(stack, ch, edge, callback):
     raise ValueError('Invalid stack level')
     return 
        
-  if edge <> RISING and edge <> FALLING or ch < 1 or ch > 6:
+  if edge != RISING and edge != FALLING or ch < 1 or ch > 6:
     raise ValueError('Invalid edge or channel')
     return
     
@@ -339,7 +339,7 @@ def remove_gpio_event(stack, ch, edge):
     raise ValueError('Invalid stack level')
     return
       
-  if edge <> RISING and edge <> FALLING or ch < 1 or ch > 6:
+  if edge != RISING and edge != FALLING or ch < 1 or ch > 6:
     raise ValueError('Invalid edge or channel')
     return
     

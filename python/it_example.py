@@ -5,9 +5,11 @@ total_event = 10;
 
 def opto_callback(ch):
   global total_event
-  print ("Event on ch", ch)
+  s = 'Event rise on opto channel no. ' + repr(ch)
+  print (s)
   total_event-= 1
-  print (total_event, "events remaining")
+  s = repr(total_event) + ' events remaining'
+  print (s)
   if total_event == 0:
     m.remove_all_opto_events();
     print ("Remove  all events, exiting..")
