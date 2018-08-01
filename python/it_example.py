@@ -5,12 +5,12 @@ total_event = 10;
 
 def opto_callback(ch):
   global total_event
-  print "Event on ch", ch
+  print ("Event on ch", ch)
   total_event-= 1
-  print total_event, "events remaining"
+  print (total_event, "events remaining")
   if total_event == 0:
     m.remove_all_opto_events();
-    print "Remove  all events, exiting.."
+    print ("Remove  all events, exiting..")
     exit()
 	
 m.add_opto_event(0, 1, m.RISING, opto_callback)
