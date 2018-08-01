@@ -42,10 +42,10 @@ gpio_callbacks = {}
 
 GPIO.setmode(GPIO.BCM) 
 GPIO.setup(4, GPIO.IN, pull_up_down=GPIO.PUD_UP)  
-
+ 
 
 def version():
-  print ("megaio python library v1.2 Sequent Microsystems")
+  print ("megaio python library v1.3 Sequent Microsystems")
   
 def set_relay(stack, relay, value):
 	bus = smbus.SMBus(1)
