@@ -10,7 +10,7 @@ Before compiling you have to install [Wiring Pi](http://wiringpi.com/download-an
 ## Usage
 
 ```bash
-~$ git clone https://github.com/alexburcea2877/megaio-rpi.git
+~$ git clone https://github.com/SequentMicrosystems/megaio-rpi.git
 ~$ cd megaio-rpi/
 ~/megaio-rpi$ sudo make install
 ```
