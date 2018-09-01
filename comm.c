@@ -150,13 +150,32 @@ int writeReg24(int dev, int add, int val)
 	
 int doBoardInit(int hwAdd)
 {
-	int dev, bV = -1;
-	dev = wiringPiI2CSetup (hwAdd);
-	if(dev == -1)
+	int dev, bV = -1, retry = 10, setupRetry = 10;
+	
+	while((bV == -1) && (retry > 0))
 	{
-		return ERROR;
+		dev = -1;
+		setupRetry = 10;
+		while((dev < 0) && (setupRetry > 0))
+		{
+			dev = wiringPiI2CSetup (hwAdd);
+			setupRetry--;
+			if(setupRetry < 9)
+			{
+				delay(250);
+			}
+		}
+		if(dev == -1)
+		{
+			return ERROR;
+		}
+		bV = wiringPiI2CReadReg8 (dev,REVISION_HW_MAJOR_MEM_ADD);
+		retry--;
+		if(retry < 9)
+		{
+			delay(250);
+		}
 	}
-	bV = wiringPiI2CReadReg8 (dev,REVISION_HW_MAJOR_MEM_ADD);
 	if(bV == -1)
 	{
 		printf( "MegaIO id %d not detected\n", hwAdd - MEGAIO_HW_I2C_BASE_ADD);

@@ -30,7 +30,7 @@
 
 #define VERSION_BASE	(int)2
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)3
+#define VERSION_MINOR	(int)4
 
 int gHwAdd = MEGAIO_HW_I2C_BASE_ADD;
 
@@ -91,7 +91,7 @@ char *warranty ="	       Copyright (c) 2016-2018 Sequent Microsystems\n"
 char *cnv2 = 	" SIGNAL  CONNECTOR    SIGNAL\n"
 				"           |---|\n"
 				" 3.3V  -- 1|O O| 2--  +5V\n"
-				" OPTO1 -- 3|O O| 4--  5VEXT\n"
+				" OPTO1 -- 3|O O| 4--  5VEXT1\n"
 				" OPTO2 -- 5|O O| 6--  GND\n"
 				" DAC   -- 7|O O| 8--  OPTO3\n"
 				" GND   -- 9|O O|10--  OPTO4\n"
@@ -104,7 +104,7 @@ char *cnv2 = 	" SIGNAL  CONNECTOR    SIGNAL\n"
 				" IO5   --23|O O|24--  IO4\n"
 				" GND   --25|O O|26--  IO3\n"
 				" IO2   --27|O O|28--  IO1\n"
-				" OC4   --29|O O|30--  GND\n"
+				" OC4   --29|O O|30--  5VEXT2\n"
 				" OC3   --31|O O|32--  OC2\n"
 				" OC1   --33|O O|34--  GND\n"
 				" N/C   --35|O O|36--  OPTO5\n"
