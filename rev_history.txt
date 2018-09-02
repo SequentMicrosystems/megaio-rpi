@@ -51,3 +51,7 @@ Version 2.2.1:
 
 Version 2.2.2:
 1) Minor code reorganizations 
+
+Version 2.2.4:
+1) "-connector" option update
+2) Retry mechanism for I2C connect to the board
