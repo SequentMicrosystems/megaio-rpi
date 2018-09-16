@@ -5,8 +5,6 @@
 
 This is the python library to control [Raspberry Pi Mega-IO Expansion Card](https://www.sequentmicrosystems.com/megaio.html)
 
-Before use you have to install python smbus library
-
 ## Install
 
 ```bash
