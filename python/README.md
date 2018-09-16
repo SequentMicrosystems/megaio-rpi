@@ -25,7 +25,7 @@ This is the python library to control [Raspberry Pi Mega-IO Expansion Card](http
 
 ## Usage 
 
-Now you can import megaio library and use is functions, for test we read relays status from MegaIO board with stack level 0:
+Now you can import the megaio library and use its functions. To test, read relays status from the MegaIO board with stack level 0:
 
 ```bash
 ~$ python
@@ -37,9 +37,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 0
 >>>
 ```
-All functions prototypes can be found in README.md file locate under megaio-rpi/python/megaio/ directory. 
+Prototypes for all functions can be found in README.md file locate under megaio-rpi/python/megaio/ directory. 
 
-You can install and use the library under Python3 if you like.
+This library works with both Python2.x and Python3
 
-For interrupt driven usage please take a look at it_examle.py file
-
+For interrupt driven usage please check it_example.py file
