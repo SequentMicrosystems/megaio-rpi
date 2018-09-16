@@ -41,4 +41,4 @@ Prototypes for all functions can be found in README.md file locate under megaio-
 
 This library works with both Python2.x and Python3
 
-For interrupt driven usage please check it_example.py file
+For interrupt driven usage please check int_example.py file
