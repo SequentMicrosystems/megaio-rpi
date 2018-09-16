@@ -1,11 +1,9 @@
 
 [![megaio-rpi](res/sequent.jpg)](https://www.sequentmicrosystems.com/megaio.html)
 
-# megaio.py
+# megaio
 
 This is the python library to control [Raspberry Pi Mega-IO Expansion Card](https://www.sequentmicrosystems.com/megaio.html)
-
-Before use you have to install python smbus library
 
 ## Functions
 ### set_relay(stack, relay, value)
