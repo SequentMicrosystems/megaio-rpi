@@ -14,6 +14,14 @@ This is the python library to control [Raspberry Pi Mega-IO Expansion Card](http
 ~$ cd megaio-rpi/python/megaio/
 ~/megaio-rpi/python/megaio$ sudo python setup.py install
 ```
+## Update
+
+```bash
+~$ cd megaio-rpi/
+~/megaio-rpi$ git pull
+~$ cd megaio-rpi/python/megaio/
+~/megaio-rpi/python/megaio$ sudo python setup.py install
+```
 
 ## Usage 
 
