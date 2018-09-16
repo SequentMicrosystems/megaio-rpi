@@ -135,7 +135,7 @@ ch - optocupled channel number [1..8]
 edge - RISING or FALLING
 
 ### remove_all_opto_events()
-Remove all callbacks and disable all interrupts on evry megaio card connected
+Remove all callbacks and disable all interrupts on every megaio card connected
 
 ### add_gpio_event(stack, ch, edge, callback)
 Add a function to be called when a change of a gpio input pin status occur ( also enable the interrupt on selected edge and channel);
@@ -158,4 +158,4 @@ ch - gpio channel number [1..6]
 edge - RISING or FALLING
 
 ### remove_all_gpio_events()
-Remove all callbacks and disable all gpio interrupts on evry megaio card connected
+Remove all callbacks and disable all gpio interrupts on every megaio card connected
