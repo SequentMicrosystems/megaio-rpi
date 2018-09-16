@@ -31,6 +31,9 @@ Type "help", "copyright", "credits" or "license" for more information.
 0
 >>>
 ```
-All functions prototypes can be found in README.md file locate under megaio-rpi/python/megaio/ directory 
-You can install and use the library under python 3 if you like.
+All functions prototypes can be found in README.md file locate under megaio-rpi/python/megaio/ directory. 
+
+You can install and use the library under Python3 if you like.
+
+For interrupt driven usage please take a look at it_examle.py file
 
