@@ -1,9 +1,7 @@
-
-[![megaio-rpi](res/sequent.jpg)](https://www.sequentmicrosystems.com/megaio.html)
-
 # megaio
 
-This is the python library to control [Raspberry Pi Mega-IO Expansion Card](https://www.sequentmicrosystems.com/megaio.html)
+This is the python library to control [Raspberry Pi Mega-IO Expansion Card](https://www.sequentmicrosystems.com/megaio.html).
+Below you find the functions prototypes.
 
 ## Functions
 ### set_relay(stack, relay, value)
