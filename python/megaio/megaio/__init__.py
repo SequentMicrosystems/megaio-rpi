@@ -202,9 +202,9 @@ def set_io_pin(stack, pin, val):
 		raise ValueError('Invalid IO output level')
 		return
 	if val == 1:	
-		bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_SET_MEM_ADD, val)	
+		bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_SET_MEM_ADD, pin)	
 	else:
-		bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_CLR_MEM_ADD, val)	
+		bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_CLR_MEM_ADD, pin)	
 	return
 
 def set_oc_pin(stack, pin, val):
@@ -219,9 +219,9 @@ def set_oc_pin(stack, pin, val):
 		raise ValueError('Invalid OC value')
 		return
 	if val == 1:	
-		bus.write_byte_data(DEVICE_ADDRESS + stack, OC_OUT_SET_MEM_ADD, val)	
+		bus.write_byte_data(DEVICE_ADDRESS + stack, OC_OUT_SET_MEM_ADD, pin)	
 	else:
-		bus.write_byte_data(DEVICE_ADDRESS + stack, OC_OUT_CLR_MEM_ADD, val)	
+		bus.write_byte_data(DEVICE_ADDRESS + stack, OC_OUT_CLR_MEM_ADD, pin)	
 	return
 	
 def get_oc_val(stack):
