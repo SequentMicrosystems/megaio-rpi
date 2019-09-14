@@ -23,3 +23,5 @@ If you clone the repository, any update can be made with the following commands:
 ~/megaio-rpi$ git pull
 ~/megaio-rpi$ sudo make install
 ```  
+
+For python library install and usage checkout the "python" subfolder.
