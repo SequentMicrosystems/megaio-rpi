@@ -27,7 +27,7 @@ stack - stack level of the megaio card (selectable from address jumpers [0..3])
 
 relay - relay number (id) [1..8]
 
-value - relay state 1: relay is ON, 0: relay is OFF[0..1]
+return - [0..1]
 
 ### get_relays(stack)
 Return the state of all relays.
