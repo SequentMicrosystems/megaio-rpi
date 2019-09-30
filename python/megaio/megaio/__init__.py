@@ -52,10 +52,7 @@ def set_relay(stack, relay, value):
 	if stack < 0 or stack > 3:
 		raise ValueError('Invalid stack level')
 		return
-	if relay < 0:
-		raise ValueError('Invalid relay number')
-		return
-	if relay > 8:
+	if relay < 1 or relay > 8:
 		raise ValueError('Invalid relay number')
 		return
 	if value == 0:
@@ -82,10 +79,7 @@ def get_relay(stack, relay):
 	if stack < 0 or stack > 3:
 		raise ValueError('Invalid stack level')
 		return
-	if relay < 0:
-		raise ValueError('Invalid relay number')
-		return
-	if relay > 8:
+	if relay < 1 or relay > 8:
 		raise ValueError('Invalid relay number')
 		return
 	return (bus.read_byte_data(DEVICE_ADDRESS + stack, RELAY_MEM_ADD) >> (relay - 1)) & 0x01
