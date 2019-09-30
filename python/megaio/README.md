@@ -20,6 +20,15 @@ stack - stack level of the megaio card (selectable from address jumpers [0..3])
 
 value - 8 bit value of all relays (ex: 255: turn on all relays, 0: turn off all relays, 1:turn on relay #1 and off the rest)
 
+### get_relay(stack, relay)
+Return the state of one relay.
+
+stack - stack level of the megaio card (selectable from address jumpers [0..3])
+
+relay - relay number (id) [1..8]
+
+value - relay state 1: relay is ON, 0: relay is OFF[0..1]
+
 ### get_relays(stack)
 Return the state of all relays.
 

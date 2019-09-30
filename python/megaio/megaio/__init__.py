@@ -77,6 +77,18 @@ def set_relays(stack, value):
 		return
 	bus.write_byte_data(DEVICE_ADDRESS + stack, RELAY_MEM_ADD, value)
 	
+def get_relay(stack, relay):
+	bus = smbus.SMBus(1)
+	if stack < 0 or stack > 3:
+		raise ValueError('Invalid stack level')
+		return
+	if relay < 0:
+		raise ValueError('Invalid relay number')
+		return
+	if relay > 8:
+		raise ValueError('Invalid relay number')
+		return
+	return (bus.read_byte_data(DEVICE_ADDRESS + stack, RELAY_MEM_ADD) >> (relay - 1)) & 0x01
 	
 def get_relays(stack):
 	bus = smbus.SMBus(1)
