@@ -25,6 +25,7 @@ This is the python library to control [Raspberry Pi Mega-IO Expansion Card](http
 
 ## Usage 
 
+Before using the library make sure you disable 1-wire interface (raspi-config), because the board use the pin7 (GPIO4 / 1-wire bus pin) for interrupt.
 Now you can import the megaio library and use its functions. To test, read relays status from the MegaIO board with stack level 0:
 
 ```bash
