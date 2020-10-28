@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="megaio",
-    version="1.3.1",
+    version="1.3.2",
     author="Alexandru Burcea",
     author_email="olcit@gmail.com",
     description="A set of functions to control Sequent Microsystems MegaIO board",

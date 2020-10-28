@@ -82,6 +82,15 @@ stack - stack level of the megaio card (selectable from address jumpers [0..3])
 
 return - value of the inputs [0..255]
 
+### get_opto_in_ch(stack, ch)
+Get the state of the one opto-coupled input channel
+
+stack - stack level of the megaio card (selectable from address jumpers [0..3])
+
+ch - Channel to be read [1..8]
+
+return - value of the selected channel 0/1
+
 ### set_io_pin_dir(stack, pin, dir)
 Set the corresponding digital I/O pin direction
 
