@@ -1,9 +1,9 @@
 
-[![megaio-rpi](res/sequent.jpg)](https://www.sequentmicrosystems.com/megaio.html)
+[![megaio-rpi](res/sequent.jpg)](https://www.sequentmicrosystems.com)
 
 # megaio
 
-This is the python library to control [Raspberry Pi Mega-IO Expansion Card](https://www.sequentmicrosystems.com/megaio.html)
+This is the python library to control Old Raspberry Pi Mega-IO Expansion Card
 
 ## Install
 
