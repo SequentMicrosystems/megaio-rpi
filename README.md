@@ -1,9 +1,9 @@
 
-[![megaio-rpi](readmeres/sequent.jpg)](https://sequentmicrosystems.com/index.php?route=product/product&path=33&product_id=42l)
+[![megaio-rpi](readmeres/sequent.jpg)](https://sequentmicrosystems.com)
 
 # megaio-rpi
 
-This is the command to control [Raspberry Pi Mega-IO Expansion Card](https://sequentmicrosystems.com/index.php?route=product/product&path=33&product_id=42)
+This is the command to control Old Raspberry Pi Mega-IO Expansion Card
 
 Before compiling you have to install [Wiring Pi](http://wiringpi.com/download-and-install/), many thanks to Gordon Henderson for the library
 
