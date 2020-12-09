@@ -3,7 +3,7 @@
 
 # megaio-rpi
 
-This is the command to control Old Raspberry Pi Mega-IO Expansion Card
+This is the command to control Old Raspberry Pi [Mega-IO](https://sequentmicrosystems.com/docs/MEGA-IO-UsersGuide.pdf) Expansion Card
 
 Before compiling you have to install [Wiring Pi](http://wiringpi.com/download-and-install/), many thanks to Gordon Henderson for the library
 
