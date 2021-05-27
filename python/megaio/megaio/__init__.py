@@ -253,6 +253,21 @@ def get_io_val(stack):
     return outVal
 
 
+def get_io_pin_val(stack, pin):
+    if stack < 0 or stack > 3:
+        raise ValueError('Invalid stack level')
+    if pin < 1 or pin > 6:
+        raise ValueError('Invalid GPIO pin')
+    bus = smbus.SMBus(1)
+    try:
+        outVal = (bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_VAL_MEM_ADD) >> (pin - 1)) & 0x01
+    except Exceptions as e:
+        bus.close()
+        raise Exception(e)
+    bus.close()
+    return outVal
+
+
 def set_io_pin(stack, pin, val):
     if stack < 0 or stack > 3:
         raise ValueError('Invalid stack level')
