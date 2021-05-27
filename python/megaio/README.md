@@ -101,11 +101,20 @@ pin - I/O pin number [1..6]
 dir - I/O pin direction 0: output; 1: input[0..1]
 
 ### get_io_val(stack)
-Get the state of digital I/O pins which are set as outputs
+Get the state of digital I/O pins
 
 stack - stack level of the megaio card (selectable from address jumpers [0..3])
 
 return - the state of I/O pins (ex 0 - all pins are LOW; 63 - all pins are HIGH; 1 - pin 1 HIGH rest LOW)
+
+### get_io_pin_val(stack, pin)
+Get the state of one digital I/O pin
+
+stack - stack level of the megaio card (selectable from address jumpers [0..3])
+
+pin - pin number [1..6]
+
+return - the state of I/O pin (0/1)
 
 ### set_io_pin(stack, pin, val)
 Set the state of corresponding I/O pins set as outputs; ignore pins set as inputs
