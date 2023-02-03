@@ -7,7 +7,7 @@ This is the command to control Old Raspberry Pi [Mega-IO](https://sequentmicrosy
 
 Before compiling you have to install [Wiring Pi](http://wiringpi.com/download-and-install/), many thanks to Gordon Henderson for the library.
 
-Since the WiringPi are not maintain by his creator, to install it, get the latest .deb version from:
+Since the WiringPi are not longer maintained by his creator, to install it, get the latest .deb version from:
 
 https://github.com/WiringPi/WiringPi/releases/ 
 
